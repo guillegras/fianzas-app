@@ -1,0 +1,15 @@
+{
+  "name": "finanzas-app",
+  "version": "1.0.0",
+  "description": "Gestor financiero personal",
+  "main": "index.js",
+  "scripts": {
+    "dev": "./dev.sh"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

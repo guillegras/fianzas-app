@@ -1,0 +1,12 @@
+# Node
+node_modules/
+dist/
+.env
+
+# Python
+backend/venv/
+__pycache__/
+*.pyc
+
+# Base de datos local
+finanzas_data/
