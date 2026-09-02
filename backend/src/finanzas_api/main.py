@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 
 from . import models, schemas
 from .database import SessionLocal, engine
+from .migrations import initialize_schema
 from fastapi import Depends, FastAPI, HTTPException, Query, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
@@ -12,7 +13,7 @@ from sqlalchemy.orm import Session
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    models.Base.metadata.create_all(bind=engine)
+    initialize_schema(engine)
     app.state.database_initialized = True
     yield
 

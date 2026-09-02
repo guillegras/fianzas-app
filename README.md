@@ -62,3 +62,32 @@ venv/bin/pytest
 ```
 
 Los tests usan SQLite en memoria y no modifican la base de datos local.
+
+## Homelab con Docker
+
+Para levantar la aplicación compilada como un servicio 24/7:
+
+```bash
+docker compose -f docker-compose.prod.yml up -d --build
+```
+
+El frontend quedará disponible en `http://IP_DEL_HOMELAB:8080`. El contenedor
+frontend sirve los archivos React y redirige las peticiones a FastAPI dentro de
+la red privada de Compose. PostgreSQL usa el volumen `pgdata_prod` y los tres
+servicios se reinician automáticamente salvo que se detengan manualmente.
+
+Para ver el estado:
+
+```bash
+docker compose -f docker-compose.prod.yml ps
+```
+
+Para detener la aplicación conservando los datos:
+
+```bash
+docker compose -f docker-compose.prod.yml down
+```
+
+No expongas este servicio directamente a Internet sin añadir autenticación,
+HTTPS y un reverse proxy con control de acceso. Para una LAN doméstica de
+confianza, el puerto publicado del frontend es suficiente.
