@@ -1,7 +1,6 @@
-const API_URL = (import.meta.env.VITE_API_URL || "http://localhost:8000").replace(
-    /\/$/,
-    "",
-);
+const API_URL = (
+    import.meta.env.VITE_API_URL || "http://localhost:8000"
+).replace(/\/$/, "");
 
 const request = async (path, options = {}) => {
     const response = await fetch(`${API_URL}${path}`, options);
@@ -20,16 +19,18 @@ const request = async (path, options = {}) => {
 
 const api = {
     getTransacciones: (options) => request("/transacciones/", options),
-    crearTransaccion: (transaccionData) => request("/transacciones/", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify(transaccionData),
-    }),
-    eliminarTransaccion: (id) => request(`/transacciones/${encodeURIComponent(id)}`, {
-        method: "DELETE",
-    }),
+    crearTransaccion: (transaccionData) =>
+        request("/transacciones/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(transaccionData),
+        }),
+    eliminarTransaccion: (id) =>
+        request(`/transacciones/${encodeURIComponent(id)}`, {
+            method: "DELETE",
+        }),
 };
 
 export default api;

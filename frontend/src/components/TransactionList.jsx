@@ -2,7 +2,11 @@ import { useState } from "react";
 import ConfirmModal from "./ConfirmModal";
 import { configTipos } from "../utils/constants";
 
-export default function TransactionList({ transacciones = [], onEliminar, eliminando = false }) {
+export default function TransactionList({
+    transacciones = [],
+    onEliminar,
+    eliminando = false,
+}) {
     const [idAEliminar, setIdAEliminar] = useState(null);
 
     const confirmarEliminacion = (id) => {
@@ -27,8 +31,12 @@ export default function TransactionList({ transacciones = [], onEliminar, elimin
                             <th scope="col">Tipo</th>
                             <th scope="col">Categoría</th>
                             <th scope="col">Descripción</th>
-                            <th scope="col" className="text-end">Monto</th>
-                            <th scope="col" className="text-end">Acciones</th>
+                            <th scope="col" className="text-end">
+                                Monto
+                            </th>
+                            <th scope="col" className="text-end">
+                                Acciones
+                            </th>
                         </tr>
                     </thead>
                     <tbody>
@@ -44,7 +52,12 @@ export default function TransactionList({ transacciones = [], onEliminar, elimin
                                 tipoSeguro === "inversion";
 
                             return (
-                                <tr key={t.id ?? `${t.fecha}-${t.tipo}-${t.monto}-${t.categoria}`}>
+                                <tr
+                                    key={
+                                        t.id ??
+                                        `${t.fecha}-${t.tipo}-${t.monto}-${t.categoria}`
+                                    }
+                                >
                                     <td className="text-muted">
                                         {t.fecha || "Sin fecha"}
                                     </td>

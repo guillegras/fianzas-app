@@ -31,11 +31,18 @@ export default function DashboardTable({ tablaCategorias }) {
                                 <tr>
                                     <th scope="col">Categoría</th>
                                     <th scope="col">Tipo</th>
-                                    <th scope="col" className="text-end text-muted">
+                                    <th
+                                        scope="col"
+                                        className="text-end text-muted"
+                                    >
                                         Mes Anterior
                                     </th>
-                                    <th scope="col" className="text-end">Mes Actual</th>
-                                    <th scope="col" className="text-end">Diferencia</th>
+                                    <th scope="col" className="text-end">
+                                        Mes Actual
+                                    </th>
+                                    <th scope="col" className="text-end">
+                                        Diferencia
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody>

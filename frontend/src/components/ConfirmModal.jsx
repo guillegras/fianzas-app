@@ -33,7 +33,10 @@ export default function ConfirmModal({
             aria-modal="true"
             aria-labelledby="confirm-modal-title"
         >
-            <div className="modal-dialog modal-dialog-centered" onClick={(event) => event.stopPropagation()}>
+            <div
+                className="modal-dialog modal-dialog-centered"
+                onClick={(event) => event.stopPropagation()}
+            >
                 <div className="modal-content bg-dark border border-secondary border-opacity-25 shadow-lg text-light p-3">
                     <div className="modal-header border-0 pb-0">
                         <div className="d-flex align-items-center gap-2">
@@ -58,7 +61,10 @@ export default function ConfirmModal({
                                     <line x1="14" y1="11" x2="14" y2="17" />
                                 </svg>
                             </div>
-                            <h5 id="confirm-modal-title" className="modal-title fw-bold fs-5 mb-0">
+                            <h5
+                                id="confirm-modal-title"
+                                className="modal-title fw-bold fs-5 mb-0"
+                            >
                                 {title || "¿Estás seguro?"}
                             </h5>
                         </div>

@@ -1,9 +1,17 @@
-import { lazy, Suspense, useState, useEffect, useCallback, useMemo } from "react";
+import {
+    lazy,
+    Suspense,
+    useState,
+    useEffect,
+    useCallback,
+    useMemo,
+} from "react";
 import api from "./services/api";
 import TransactionForm from "./components/TransactionForm";
 import TransactionList from "./components/TransactionList";
 import CustomDatePicker from "./components/CustomDatePicker";
 import { categoriasPorTipo, tiposMovimiento } from "./utils/constants";
+import { filterTransactions } from "./utils/transactions";
 
 const Dashboard = lazy(() => import("./components/Dashboard"));
 
@@ -101,47 +109,41 @@ export default function App() {
     };
 
     // Categorías dinámicas basadas en el tipo seleccionado utilizando categoriasPorTipo
-    const categoriasDisponibles = filtroTipo ? categoriasPorTipo[filtroTipo] || [] : [];
+    const categoriasDisponibles = filtroTipo
+        ? categoriasPorTipo[filtroTipo] || []
+        : [];
     const filtrosInvalidos =
-        filtroMontoMin !== "" && filtroMontoMax !== "" && Number(filtroMontoMin) > Number(filtroMontoMax) ||
-        filtroFechaInicio !== "" && filtroFechaFin !== "" && filtroFechaInicio > filtroFechaFin;
+        (filtroMontoMin !== "" &&
+            filtroMontoMax !== "" &&
+            Number(filtroMontoMin) > Number(filtroMontoMax)) ||
+        (filtroFechaInicio !== "" &&
+            filtroFechaFin !== "" &&
+            filtroFechaInicio > filtroFechaFin);
 
-    // Lógica de filtrado en tiempo real
-    const transaccionesFiltradas = useMemo(() => transacciones.filter((t) => {
-        const tipoSeguro = t.tipo || "";
-        const categoriaSegura = t.categoria || t.titulo || "";
-        const montoSeguro = Number(t.monto) || 0;
-
-        const matchTipo = filtroTipo === "" || tipoSeguro === filtroTipo;
-        const matchCategoria =
-            filtroCategoria === "" || categoriaSegura === filtroCategoria;
-        const matchMontoMin =
-            filtroMontoMin === "" || montoSeguro >= Number(filtroMontoMin);
-        const matchMontoMax =
-            filtroMontoMax === "" || montoSeguro <= Number(filtroMontoMax);
-
-        // Filtro rápido por Mes y Año
-        const [anioTx, mesTx] = t.fecha ? t.fecha.split("-") : ["", ""];
-        const matchAnio = filtroAnio === "" || anioTx === filtroAnio;
-        const matchMes = filtroMes === "" || mesTx === filtroMes;
-
-        // Filtro por rango de fechas concretas
-        const matchFechaInicio =
-            filtroFechaInicio === "" || t.fecha >= filtroFechaInicio;
-        const matchFechaFin =
-            filtroFechaFin === "" || t.fecha <= filtroFechaFin;
-
-        return !filtrosInvalidos && (
-            matchTipo &&
-            matchCategoria &&
-            matchMontoMin &&
-            matchMontoMax &&
-            matchAnio &&
-            matchMes &&
-            matchFechaInicio &&
-            matchFechaFin
-        );
-    }), [transacciones, filtroTipo, filtroCategoria, filtroMontoMin, filtroMontoMax, filtroMes, filtroAnio, filtroFechaInicio, filtroFechaFin, filtrosInvalidos]);
+    const transaccionesFiltradas = useMemo(
+        () =>
+            filterTransactions(transacciones, {
+                tipo: filtroTipo,
+                categoria: filtroCategoria,
+                montoMin: filtroMontoMin,
+                montoMax: filtroMontoMax,
+                mes: filtroMes,
+                anio: filtroAnio,
+                fechaInicio: filtroFechaInicio,
+                fechaFin: filtroFechaFin,
+            }),
+        [
+            transacciones,
+            filtroTipo,
+            filtroCategoria,
+            filtroMontoMin,
+            filtroMontoMax,
+            filtroMes,
+            filtroAnio,
+            filtroFechaInicio,
+            filtroFechaFin,
+        ],
+    );
 
     return (
         <div className="container my-5">
@@ -247,13 +249,30 @@ export default function App() {
             <div className="row">
                 <div className="col-12">
                     {estadoCarga === "loading" ? (
-                        <div className="alert alert-secondary" role="status">Cargando movimientos...</div>
+                        <div className="alert alert-secondary" role="status">
+                            Cargando movimientos...
+                        </div>
                     ) : estadoCarga === "error" ? (
                         <div className="alert alert-danger" role="alert">
-                            {error} <button className="btn btn-sm btn-outline-danger ms-2" onClick={() => cargarDatos()}>Reintentar</button>
+                            {error}{" "}
+                            <button
+                                className="btn btn-sm btn-outline-danger ms-2"
+                                onClick={() => cargarDatos()}
+                            >
+                                Reintentar
+                            </button>
                         </div>
                     ) : vistaActiva === "dashboard" ? (
-                        <Suspense fallback={<div className="alert alert-secondary" role="status">Cargando resumen...</div>}>
+                        <Suspense
+                            fallback={
+                                <div
+                                    className="alert alert-secondary"
+                                    role="status"
+                                >
+                                    Cargando resumen...
+                                </div>
+                            }
+                        >
                             <Dashboard transacciones={transacciones} />
                         </Suspense>
                     ) : (
@@ -286,10 +305,14 @@ export default function App() {
                 <div className="offcanvas-body">
                     {/* Tipo de Movimiento (Sincronizado con los 5 tipos del formulario) */}
                     <div className="mb-3">
-                            <label htmlFor="filter-type" className="form-label text-muted small">
+                        <label
+                            htmlFor="filter-type"
+                            className="form-label text-muted small"
+                        >
                             Tipo de movimiento
                         </label>
-                        <select id="filter-type"
+                        <select
+                            id="filter-type"
                             className="form-select"
                             value={filtroTipo}
                             onChange={(e) => {
@@ -299,17 +322,23 @@ export default function App() {
                         >
                             <option value="">Todos</option>
                             {tiposMovimiento.map((tipo) => (
-                                <option key={tipo.value} value={tipo.value}>{tipo.label}</option>
+                                <option key={tipo.value} value={tipo.value}>
+                                    {tipo.label}
+                                </option>
                             ))}
                         </select>
                     </div>
 
                     {/* Categoría (Desplegable dinámico según el tipo seleccionado) */}
                     <div className="mb-3">
-                            <label htmlFor="filter-category" className="form-label text-muted small">
+                        <label
+                            htmlFor="filter-category"
+                            className="form-label text-muted small"
+                        >
                             Categoría
                         </label>
-                        <select id="filter-category"
+                        <select
+                            id="filter-category"
                             className="form-select"
                             value={filtroCategoria}
                             onChange={(e) => setFiltroCategoria(e.target.value)}
@@ -325,8 +354,17 @@ export default function App() {
                     </div>
 
                     <div className="mb-3">
-                            <span className="form-label text-muted small d-block">Rango de Importe (€)</span>
-                            {filtrosInvalidos && <div className="text-danger small mb-2" role="alert">El rango indicado no es válido.</div>}
+                        <span className="form-label text-muted small d-block">
+                            Rango de Importe (€)
+                        </span>
+                        {filtrosInvalidos && (
+                            <div
+                                className="text-danger small mb-2"
+                                role="alert"
+                            >
+                                El rango indicado no es válido.
+                            </div>
+                        )}
                         <div className="input-group">
                             <input
                                 type="number"
@@ -354,7 +392,9 @@ export default function App() {
 
                     {/* Filtro Rápido por Mes y Año */}
                     <div className="mb-3">
-                            <span className="form-label text-muted small d-block">Filtro Rápido (Mes y Año)</span>
+                        <span className="form-label text-muted small d-block">
+                            Filtro Rápido (Mes y Año)
+                        </span>
                         <div className="row g-2">
                             <div className="col-7">
                                 <select
@@ -396,7 +436,9 @@ export default function App() {
                     </div>
 
                     <div className="mb-4">
-                            <span className="form-label text-muted small d-block">Rango de Fechas Concretas</span>
+                        <span className="form-label text-muted small d-block">
+                            Rango de Fechas Concretas
+                        </span>
                         <div className="mb-2">
                             <CustomDatePicker
                                 id="filter-start-date"
@@ -444,7 +486,10 @@ export default function App() {
                     <div className="modal-dialog modal-dialog-centered">
                         <div className="modal-content border-0 shadow-lg">
                             <div className="modal-header border-bottom-0 pb-0">
-                                <h5 id="transaction-modal-title" className="modal-title fw-bold">
+                                <h5
+                                    id="transaction-modal-title"
+                                    className="modal-title fw-bold"
+                                >
                                     Registrar Nuevo Movimiento
                                 </h5>
                                 <button

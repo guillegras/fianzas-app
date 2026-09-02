@@ -199,9 +199,7 @@ export default function CustomDatePicker({ id, value, onChange }) {
                     <div className="row text-center g-1">
                         {diasDelMes.map((item, index) => {
                             const esSeleccionado = item.fechaStr === value;
-                            const esHoy =
-                                item.fechaStr ===
-                                hoyLocal();
+                            const esHoy = item.fechaStr === hoyLocal();
 
                             return (
                                 <div

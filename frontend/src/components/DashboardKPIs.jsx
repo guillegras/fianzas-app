@@ -1,31 +1,13 @@
 import { configTipos } from "../utils/constants";
+import { getTotalExpenses, summarizeTransactions } from "../utils/transactions";
 
 export default function DashboardKPIs({ transaccionesMes }) {
-    const totalIngresos = transaccionesMes
-        .filter((t) => t.tipo === "ingreso")
-        .reduce((acc, t) => acc + (Number(t.monto) || 0), 0);
-
-    const totalGastosFijos = transaccionesMes
-        .filter((t) => t.tipo === "gasto_fijo")
-        .reduce((acc, t) => acc + (Number(t.monto) || 0), 0);
-
-    const totalGastosVariables = transaccionesMes
-        .filter((t) => t.tipo === "gasto_variable")
-        .reduce((acc, t) => acc + (Number(t.monto) || 0), 0);
-
-    const totalInversiones = transaccionesMes
-        .filter((t) => t.tipo === "inversion")
-        .reduce((acc, t) => acc + (Number(t.monto) || 0), 0);
-
-    const totalDeudas = transaccionesMes
-        .filter((t) => t.tipo === "deuda")
-        .reduce((acc, t) => acc + (Number(t.monto) || 0), 0);
-
-    const gastosTotales =
-        totalGastosFijos +
-        totalGastosVariables +
-        totalInversiones +
-        totalDeudas;
+    const resumen = summarizeTransactions(transaccionesMes);
+    const totalIngresos = resumen.ingresos;
+    const totalGastosFijos = resumen.gastosFijos;
+    const totalGastosVariables = resumen.gastosVariables;
+    const totalInversiones = resumen.inversiones;
+    const gastosTotales = getTotalExpenses(resumen);
     const balanceNeto = totalIngresos - gastosTotales;
 
     return (

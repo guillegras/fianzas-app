@@ -46,9 +46,16 @@ export default function TransactionForm({ onGuardar, guardando = false }) {
 
     return (
         <form onSubmit={handleSubmit} aria-busy={guardando}>
-            {error && <div className="alert alert-danger py-2" role="alert">{error}</div>}
+            {error && (
+                <div className="alert alert-danger py-2" role="alert">
+                    {error}
+                </div>
+            )}
             <div className="mb-3">
-                <label htmlFor="transaction-date" className="form-label text-muted small uppercase fw-semibold">
+                <label
+                    htmlFor="transaction-date"
+                    className="form-label text-muted small uppercase fw-semibold"
+                >
                     Fecha
                 </label>
                 <CustomDatePicker
@@ -61,7 +68,9 @@ export default function TransactionForm({ onGuardar, guardando = false }) {
             </div>
 
             <div className="mb-3">
-                <label htmlFor="transaction-type" className="form-label">Tipo</label>
+                <label htmlFor="transaction-type" className="form-label">
+                    Tipo
+                </label>
                 <select
                     className="form-select bg-dark text-light border-secondary border-opacity-50"
                     id="transaction-type"
@@ -77,7 +86,9 @@ export default function TransactionForm({ onGuardar, guardando = false }) {
             </div>
 
             <div className="mb-3">
-                <label htmlFor="transaction-category" className="form-label">Categoría</label>
+                <label htmlFor="transaction-category" className="form-label">
+                    Categoría
+                </label>
                 <select
                     id="transaction-category"
                     className="form-select bg-dark text-light border-secondary border-opacity-50"
@@ -96,7 +107,9 @@ export default function TransactionForm({ onGuardar, guardando = false }) {
             </div>
 
             <div className="mb-3">
-                <label htmlFor="transaction-amount" className="form-label">Monto (€)</label>
+                <label htmlFor="transaction-amount" className="form-label">
+                    Monto (€)
+                </label>
                 <input
                     id="transaction-amount"
                     type="number"
@@ -120,7 +133,9 @@ export default function TransactionForm({ onGuardar, guardando = false }) {
             </div>
 
             <div className="mb-3">
-                <label htmlFor="transaction-description" className="form-label">Descripción</label>
+                <label htmlFor="transaction-description" className="form-label">
+                    Descripción
+                </label>
                 <input
                     id="transaction-description"
                     type="text"
@@ -133,7 +148,11 @@ export default function TransactionForm({ onGuardar, guardando = false }) {
                 />
             </div>
 
-            <button type="submit" className="btn btn-primary w-100" disabled={guardando}>
+            <button
+                type="submit"
+                className="btn btn-primary w-100"
+                disabled={guardando}
+            >
                 {guardando ? "Guardando..." : "Guardar"}
             </button>
         </form>

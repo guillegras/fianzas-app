@@ -2,6 +2,12 @@ import { useState, useMemo } from "react";
 import DashboardKPIs from "./DashboardKPIs";
 import DashboardCharts from "./DashboardCharts";
 import DashboardTable from "./DashboardTable";
+import {
+    getTransactionAmount,
+    getTransactionCategory,
+    getTotalExpenses,
+    summarizeTransactions,
+} from "../utils/transactions";
 
 const MESES = [
     "Enero",
@@ -61,27 +67,23 @@ export default function Dashboard({ transacciones = [] }) {
         [transacciones, periodoAnterior],
     );
 
-    const ingresos = transaccionesMes
-        .filter((t) => t.tipo === "ingreso")
-        .reduce((acc, t) => acc + (Number(t.monto) || 0), 0);
-
-    const gastos = transaccionesMes
-        .filter((t) => t.tipo !== "ingreso")
-        .reduce((acc, t) => acc + (Number(t.monto) || 0), 0);
+    const resumenActual = summarizeTransactions(transaccionesMes);
+    const ingresos = resumenActual.ingresos;
+    const gastos = getTotalExpenses(resumenActual);
 
     const tablaCategorias = useMemo(() => {
         const mapa = {};
         transaccionesMes.forEach((t) => {
-            const cat = t.categoria || t.titulo || "Sin categoría";
+            const cat = getTransactionCategory(t);
             if (!mapa[cat])
                 mapa[cat] = { tipo: t.tipo, actual: 0, anterior: 0 };
-            mapa[cat].actual += Number(t.monto) || 0;
+            mapa[cat].actual += getTransactionAmount(t);
         });
         transaccionesAnterior.forEach((t) => {
-            const cat = t.categoria || t.titulo || "Sin categoría";
+            const cat = getTransactionCategory(t);
             if (!mapa[cat])
                 mapa[cat] = { tipo: t.tipo, actual: 0, anterior: 0 };
-            mapa[cat].anterior += Number(t.monto) || 0;
+            mapa[cat].anterior += getTransactionAmount(t);
         });
         return Object.entries(mapa)
             .map(([categoria, data]) => ({
