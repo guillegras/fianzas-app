@@ -40,7 +40,8 @@ export default function TransactionList({
                 <h5 className="mb-0 text-light">Historial de Movimientos</h5>
                 {transacciones.length > 0 && (
                     <span className="text-muted small" aria-live="polite">
-                        {transacciones.length} movimientos · Página {paginaActual} de {totalPaginas}
+                        {transacciones.length} movimientos · Página{" "}
+                        {paginaActual} de {totalPaginas}
                     </span>
                 )}
             </div>
@@ -150,11 +151,16 @@ export default function TransactionList({
             </div>
 
             {transacciones.length > 0 && totalPaginas > 1 && (
-                <nav className="d-flex justify-content-center align-items-center gap-3 mt-4" aria-label="Paginación de movimientos">
+                <nav
+                    className="d-flex justify-content-center align-items-center gap-3 mt-4"
+                    aria-label="Paginación de movimientos"
+                >
                     <button
                         type="button"
                         className="btn btn-sm btn-outline-secondary"
-                        onClick={() => setPagina((current) => Math.max(1, current - 1))}
+                        onClick={() =>
+                            setPagina((current) => Math.max(1, current - 1))
+                        }
                         disabled={paginaActual === 1}
                     >
                         Anterior
@@ -165,7 +171,11 @@ export default function TransactionList({
                     <button
                         type="button"
                         className="btn btn-sm btn-outline-secondary"
-                        onClick={() => setPagina((current) => Math.min(totalPaginas, current + 1))}
+                        onClick={() =>
+                            setPagina((current) =>
+                                Math.min(totalPaginas, current + 1),
+                            )
+                        }
                         disabled={paginaActual === totalPaginas}
                     >
                         Siguiente

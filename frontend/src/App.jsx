@@ -1,10 +1,4 @@
-import {
-    lazy,
-    Suspense,
-    useState,
-    useEffect,
-    useMemo,
-} from "react";
+import { lazy, Suspense, useState, useEffect, useMemo } from "react";
 import TransactionForm from "./components/TransactionForm";
 import TransactionList from "./components/TransactionList";
 import FiltersPanel from "./components/FiltersPanel";

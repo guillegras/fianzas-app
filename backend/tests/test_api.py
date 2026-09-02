@@ -53,9 +53,7 @@ def test_create_rejects_invalid_amount_and_type(client):
 
 
 def test_create_rejects_more_than_two_decimal_places(client):
-    response = client.post(
-        "/transacciones/", json=transaction_payload(amount="10.999")
-    )
+    response = client.post("/transacciones/", json=transaction_payload(amount="10.999"))
 
     assert response.status_code == 422
 

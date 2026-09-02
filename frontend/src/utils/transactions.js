@@ -1,4 +1,5 @@
-export const getTransactionAmount = (transaction) => Number(transaction.monto) || 0;
+export const getTransactionAmount = (transaction) =>
+    Number(transaction.monto) || 0;
 
 export const getTransactionCategory = (transaction) =>
     transaction.categoria || transaction.titulo || "Sin categoría";
@@ -25,8 +26,10 @@ export const filterTransactions = (transactions, filters) => {
     } = filters;
 
     const rangosInvalidos =
-        montoMin !== "" && montoMax !== "" && Number(montoMin) > Number(montoMax) ||
-        fechaInicio !== "" && fechaFin !== "" && fechaInicio > fechaFin;
+        (montoMin !== "" &&
+            montoMax !== "" &&
+            Number(montoMin) > Number(montoMax)) ||
+        (fechaInicio !== "" && fechaFin !== "" && fechaInicio > fechaFin);
 
     if (rangosInvalidos) return [];
 

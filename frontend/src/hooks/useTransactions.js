@@ -29,34 +29,40 @@ export default function useTransactions() {
         return () => controller.abort();
     }, [cargarDatos]);
 
-    const guardarTransaccion = useCallback(async (transaccion) => {
-        setGuardando(true);
-        setError("");
-        try {
-            await api.crearTransaccion(transaccion);
-            await cargarDatos();
-        } catch (requestError) {
-            setError("No se ha podido guardar el movimiento.");
-            console.error("Error guardando:", requestError);
-            throw requestError;
-        } finally {
-            setGuardando(false);
-        }
-    }, [cargarDatos]);
+    const guardarTransaccion = useCallback(
+        async (transaccion) => {
+            setGuardando(true);
+            setError("");
+            try {
+                await api.crearTransaccion(transaccion);
+                await cargarDatos();
+            } catch (requestError) {
+                setError("No se ha podido guardar el movimiento.");
+                console.error("Error guardando:", requestError);
+                throw requestError;
+            } finally {
+                setGuardando(false);
+            }
+        },
+        [cargarDatos],
+    );
 
-    const eliminarTransaccion = useCallback(async (id) => {
-        setEliminando(true);
-        setError("");
-        try {
-            await api.eliminarTransaccion(id);
-            await cargarDatos();
-        } catch (requestError) {
-            setError("No se ha podido eliminar el movimiento.");
-            console.error("Error eliminando:", requestError);
-        } finally {
-            setEliminando(false);
-        }
-    }, [cargarDatos]);
+    const eliminarTransaccion = useCallback(
+        async (id) => {
+            setEliminando(true);
+            setError("");
+            try {
+                await api.eliminarTransaccion(id);
+                await cargarDatos();
+            } catch (requestError) {
+                setError("No se ha podido eliminar el movimiento.");
+                console.error("Error eliminando:", requestError);
+            } finally {
+                setEliminando(false);
+            }
+        },
+        [cargarDatos],
+    );
 
     return {
         transacciones,

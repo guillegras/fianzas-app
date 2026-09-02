@@ -1,10 +1,10 @@
 {
-  "include": ["backend/src", "backend/tests"],
-  "exclude": ["**/__pycache__", "backend/venv"],
-  "executionEnvironments": [
-    {
-      "root": "backend",
-      "extraPaths": ["backend/src"]
-    }
-  ]
+    "include": ["backend/src", "backend/tests"],
+    "exclude": ["**/__pycache__", "backend/venv"],
+    "executionEnvironments": [
+        {
+            "root": "backend",
+            "extraPaths": ["backend/src"]
+        }
+    ]
 }

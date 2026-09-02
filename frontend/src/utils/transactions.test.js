@@ -8,10 +8,34 @@ import {
 } from "./transactions";
 
 const transactions = [
-    { id: 1, tipo: "ingreso", categoria: "Nomina", monto: 2000, fecha: "2026-01-05" },
-    { id: 2, tipo: "gasto_fijo", categoria: "Alquiler", monto: 800, fecha: "2026-01-10" },
-    { id: 3, tipo: "gasto_variable", titulo: "Ocio", monto: 120.5, fecha: "2026-02-02" },
-    { id: 4, tipo: "inversion", categoria: "Cartera inversión", monto: 300, fecha: "2026-01-20" },
+    {
+        id: 1,
+        tipo: "ingreso",
+        categoria: "Nomina",
+        monto: 2000,
+        fecha: "2026-01-05",
+    },
+    {
+        id: 2,
+        tipo: "gasto_fijo",
+        categoria: "Alquiler",
+        monto: 800,
+        fecha: "2026-01-10",
+    },
+    {
+        id: 3,
+        tipo: "gasto_variable",
+        titulo: "Ocio",
+        monto: 120.5,
+        fecha: "2026-02-02",
+    },
+    {
+        id: 4,
+        tipo: "inversion",
+        categoria: "Cartera inversión",
+        monto: 300,
+        fecha: "2026-01-20",
+    },
 ];
 
 describe("filterTransactions", () => {
@@ -30,13 +54,26 @@ describe("filterTransactions", () => {
     });
 
     it("acepta el mes y año sin convertir la fecha a Date", () => {
-        const result = filterTransactions(transactions, { mes: "02", anio: "2026" });
+        const result = filterTransactions(transactions, {
+            mes: "02",
+            anio: "2026",
+        });
         expect(result.map((transaction) => transaction.id)).toEqual([3]);
     });
 
     it("devuelve vacío para rangos imposibles", () => {
-        expect(filterTransactions(transactions, { montoMin: "900", montoMax: "100" })).toEqual([]);
-        expect(filterTransactions(transactions, { fechaInicio: "2026-03-01", fechaFin: "2026-02-01" })).toEqual([]);
+        expect(
+            filterTransactions(transactions, {
+                montoMin: "900",
+                montoMax: "100",
+            }),
+        ).toEqual([]);
+        expect(
+            filterTransactions(transactions, {
+                fechaInicio: "2026-03-01",
+                fechaFin: "2026-02-01",
+            }),
+        ).toEqual([]);
     });
 });
 

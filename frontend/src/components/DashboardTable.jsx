@@ -4,7 +4,11 @@ import { formatCurrency } from "../utils/transactions";
 export default function DashboardTable({ tablaCategorias }) {
     const renderDiferencia = (item) => {
         if (item.diferencia === 0)
-            return <span className="text-muted font-mono">{formatCurrency(0)}</span>;
+            return (
+                <span className="text-muted font-mono">
+                    {formatCurrency(0)}
+                </span>
+            );
 
         const isIngreso = item.tipo === "ingreso";
         const impacto = isIngreso ? item.diferencia : -item.diferencia;
