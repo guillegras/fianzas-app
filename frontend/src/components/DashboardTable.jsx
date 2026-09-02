@@ -1,9 +1,10 @@
 import { configTipos } from "../utils/constants";
+import { formatCurrency } from "../utils/transactions";
 
 export default function DashboardTable({ tablaCategorias }) {
     const renderDiferencia = (item) => {
         if (item.diferencia === 0)
-            return <span className="text-muted font-mono">0.00 €</span>;
+            return <span className="text-muted font-mono">{formatCurrency(0)}</span>;
 
         const isIngreso = item.tipo === "ingreso";
         const impacto = isIngreso ? item.diferencia : -item.diferencia;
@@ -13,7 +14,7 @@ export default function DashboardTable({ tablaCategorias }) {
         return (
             <span className={`${colorClass} fw-bold font-mono`}>
                 {signo}
-                {Math.abs(impacto).toFixed(2)} €
+                {formatCurrency(Math.abs(impacto))}
             </span>
         );
     };
@@ -66,10 +67,10 @@ export default function DashboardTable({ tablaCategorias }) {
                                             </span>
                                         </td>
                                         <td className="text-end text-muted font-mono">
-                                            {item.anterior.toFixed(2)} €
+                                            {formatCurrency(item.anterior)}
                                         </td>
                                         <td className="text-end fw-bold font-mono text-light">
-                                            {item.actual.toFixed(2)} €
+                                            {formatCurrency(item.actual)}
                                         </td>
                                         <td className="text-end">
                                             {renderDiferencia(item)}

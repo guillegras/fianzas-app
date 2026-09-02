@@ -12,6 +12,7 @@ import {
 } from "recharts";
 import { configTipos } from "../utils/constants";
 import {
+    formatCurrency,
     getTransactionAmount,
     getTransactionCategory,
 } from "../utils/transactions";
@@ -95,7 +96,7 @@ export default function DashboardCharts({
                                         fill: "rgba(255, 255, 255, 0.05)",
                                     }}
                                     formatter={(value) => [
-                                        `${Number(value).toFixed(2)} €`,
+                                        formatCurrency(value),
                                         "Cantidad",
                                     ]}
                                 />
@@ -175,7 +176,7 @@ export default function DashboardCharts({
                                                 marginBottom: "4px",
                                             }}
                                             formatter={(value) => [
-                                                `${Number(value).toFixed(2)} €`,
+                                                formatCurrency(value),
                                                 "Monto",
                                             ]}
                                         />
@@ -215,7 +216,7 @@ export default function DashboardCharts({
                                                 {d.name}
                                             </span>
                                             <strong className="font-mono text-nowrap">
-                                                {d.value.toFixed(2)} €
+                                                {formatCurrency(d.value)}
                                             </strong>
                                         </li>
                                     ))}

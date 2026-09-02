@@ -1,6 +1,7 @@
 import { useState } from "react";
 import ConfirmModal from "./ConfirmModal";
 import { configTipos } from "../utils/constants";
+import { formatCurrency } from "../utils/transactions";
 
 export default function TransactionList({
     transacciones = [],
@@ -83,7 +84,7 @@ export default function TransactionList({
                                     <td
                                         className={`font-mono fw-bold text-end ${esPositivo ? "text-success" : "text-danger"}`}
                                     >
-                                        {montoSeguro.toFixed(2)} €
+                                        {formatCurrency(montoSeguro)}
                                     </td>
                                     <td className="text-end">
                                         <button

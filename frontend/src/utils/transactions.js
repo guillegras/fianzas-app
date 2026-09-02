@@ -3,6 +3,13 @@ export const getTransactionAmount = (transaction) => Number(transaction.monto) |
 export const getTransactionCategory = (transaction) =>
     transaction.categoria || transaction.titulo || "Sin categoría";
 
+export const formatCurrency = (amount) =>
+    new Intl.NumberFormat("es-ES", {
+        style: "currency",
+        currency: "EUR",
+        minimumFractionDigits: 2,
+    }).format(Number(amount) || 0);
+
 export const filterTransactions = (transactions, filters) => {
     const {
         tipo = "",

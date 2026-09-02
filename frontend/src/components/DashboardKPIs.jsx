@@ -1,5 +1,9 @@
 import { configTipos } from "../utils/constants";
-import { getTotalExpenses, summarizeTransactions } from "../utils/transactions";
+import {
+    formatCurrency,
+    getTotalExpenses,
+    summarizeTransactions,
+} from "../utils/transactions";
 
 export default function DashboardKPIs({ transaccionesMes }) {
     const resumen = summarizeTransactions(transaccionesMes);
@@ -22,7 +26,7 @@ export default function DashboardKPIs({ transaccionesMes }) {
                         className="font-mono fw-bold mb-0"
                         style={{ color: configTipos.ingreso?.color }}
                     >
-                        {totalIngresos.toFixed(2)} €
+                        {formatCurrency(totalIngresos)}
                     </h4>
                 </div>
 
@@ -32,7 +36,7 @@ export default function DashboardKPIs({ transaccionesMes }) {
                         Salidas
                     </span>
                     <h4 className="font-mono fw-bold text-danger mb-0">
-                        {gastosTotales.toFixed(2)} €
+                        {formatCurrency(gastosTotales)}
                     </h4>
                 </div>
 
@@ -44,7 +48,7 @@ export default function DashboardKPIs({ transaccionesMes }) {
                     <h4
                         className={`font-mono fw-bold mb-0 ${balanceNeto >= 0 ? "text-success" : "text-danger"}`}
                     >
-                        {balanceNeto.toFixed(2)} €
+                        {formatCurrency(balanceNeto)}
                     </h4>
                 </div>
 
@@ -57,7 +61,7 @@ export default function DashboardKPIs({ transaccionesMes }) {
                         className="font-mono fw-bold mb-0"
                         style={{ color: configTipos.gasto_fijo?.color }}
                     >
-                        {totalGastosFijos.toFixed(2)} €
+                        {formatCurrency(totalGastosFijos)}
                     </h4>
                 </div>
 
@@ -70,7 +74,7 @@ export default function DashboardKPIs({ transaccionesMes }) {
                         className="font-mono fw-bold mb-0"
                         style={{ color: configTipos.gasto_variable?.color }}
                     >
-                        {totalGastosVariables.toFixed(2)} €
+                        {formatCurrency(totalGastosVariables)}
                     </h4>
                 </div>
 
@@ -83,7 +87,7 @@ export default function DashboardKPIs({ transaccionesMes }) {
                         className="font-mono fw-bold mb-0"
                         style={{ color: configTipos.inversion?.color }}
                     >
-                        {totalInversiones.toFixed(2)} €
+                        {formatCurrency(totalInversiones)}
                     </h4>
                 </div>
             </div>

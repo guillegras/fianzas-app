@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
     filterTransactions,
+    formatCurrency,
     getTotalExpenses,
     getTransactionCategory,
     summarizeTransactions,
@@ -56,5 +57,10 @@ describe("resumen financiero", () => {
     it("usa titulo como fallback de categoria", () => {
         expect(getTransactionCategory({ titulo: "Ocio" })).toBe("Ocio");
         expect(getTransactionCategory({})).toBe("Sin categoría");
+    });
+
+    it("formatea importes con la convención monetaria española", () => {
+        expect(formatCurrency(1250.5)).toBe("1250,50 €");
+        expect(formatCurrency(-8)).toBe("-8,00 €");
     });
 });
