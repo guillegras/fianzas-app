@@ -29,18 +29,18 @@ export default function DashboardTable({ tablaCategorias }) {
                         <table className="table table-dark table-hover align-middle m-0">
                             <thead>
                                 <tr>
-                                    <th>Categoría</th>
-                                    <th>Tipo</th>
-                                    <th className="text-end text-muted">
+                                    <th scope="col">Categoría</th>
+                                    <th scope="col">Tipo</th>
+                                    <th scope="col" className="text-end text-muted">
                                         Mes Anterior
                                     </th>
-                                    <th className="text-end">Mes Actual</th>
-                                    <th className="text-end">Diferencia</th>
+                                    <th scope="col" className="text-end">Mes Actual</th>
+                                    <th scope="col" className="text-end">Diferencia</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {tablaCategorias.map((item, index) => (
-                                    <tr key={index}>
+                                {tablaCategorias.map((item) => (
+                                    <tr key={`${item.tipo}-${item.categoria}`}>
                                         <td className="fw-medium text-light">
                                             {item.categoria}
                                         </td>

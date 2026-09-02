@@ -25,6 +25,14 @@ export const categoriasPorTipo = {
     deuda: ["Prestamos"],
 };
 
+export const tiposMovimiento = [
+    { value: "ingreso", label: "Ingreso" },
+    { value: "gasto_fijo", label: "Gasto Fijo" },
+    { value: "gasto_variable", label: "Gasto Variable" },
+    { value: "inversion", label: "Inversión" },
+    { value: "deuda", label: "Deuda" },
+];
+
 export const configTipos = {
     ingreso: { label: "Ingreso", color: "#28a745" },
     gasto_fijo: { label: "Gasto Fijo", color: "#fd7e14" },

@@ -1,15 +1,18 @@
 import { useState } from "react";
-import { categoriasPorTipo } from "../utils/constants";
+import { categoriasPorTipo, tiposMovimiento } from "../utils/constants";
 import CustomDatePicker from "./CustomDatePicker";
 
-export default function TransactionForm({ onGuardar }) {
-    const [form, setForm] = useState({
-        fecha: new Date().toISOString().split("T")[0],
-        tipo: "ingreso",
-        categoria: "Nomina",
-        monto: "",
-        descripcion: "",
-    });
+const getInitialForm = () => ({
+    fecha: new Date().toLocaleDateString("en-CA"),
+    tipo: "ingreso",
+    categoria: "Nomina",
+    monto: "",
+    descripcion: "",
+});
+
+export default function TransactionForm({ onGuardar, guardando = false }) {
+    const [form, setForm] = useState(getInitialForm);
+    const [error, setError] = useState("");
 
     const handleTipoChange = (e) => {
         const nuevoTipo = e.target.value;
@@ -21,34 +24,35 @@ export default function TransactionForm({ onGuardar }) {
         });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        onGuardar({
-            titulo: form.categoria,
-            monto: parseFloat(form.monto),
-            tipo: form.tipo,
-            categoria: form.categoria,
-            fecha: form.fecha,
-            descripcion: form.descripcion.trim(),
-        });
-        setForm({
-            fecha: new Date().toISOString().split("T")[0],
-            tipo: "ingreso",
-            categoria: "Nomina",
-            monto: "",
-            descripcion: "",
-        });
+        setError("");
+        try {
+            await onGuardar({
+                titulo: form.categoria,
+                monto: parseFloat(form.monto),
+                tipo: form.tipo,
+                categoria: form.categoria,
+                fecha: form.fecha,
+                descripcion: form.descripcion.trim(),
+            });
+            setForm(getInitialForm());
+        } catch {
+            setError("Revisa la conexión e inténtalo de nuevo.");
+        }
     };
 
     const categoriasDisponibles = categoriasPorTipo[form.tipo] || [];
 
     return (
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} aria-busy={guardando}>
+            {error && <div className="alert alert-danger py-2" role="alert">{error}</div>}
             <div className="mb-3">
-                <label className="form-label text-muted small uppercase fw-semibold">
+                <label htmlFor="transaction-date" className="form-label text-muted small uppercase fw-semibold">
                     Fecha
                 </label>
                 <CustomDatePicker
+                    id="transaction-date"
                     value={form.fecha}
                     onChange={(nuevaFecha) =>
                         setForm({ ...form, fecha: nuevaFecha })
@@ -57,23 +61,25 @@ export default function TransactionForm({ onGuardar }) {
             </div>
 
             <div className="mb-3">
-                <label className="form-label">Tipo</label>
+                <label htmlFor="transaction-type" className="form-label">Tipo</label>
                 <select
                     className="form-select bg-dark text-light border-secondary border-opacity-50"
+                    id="transaction-type"
                     value={form.tipo}
                     onChange={handleTipoChange}
                 >
-                    <option value="ingreso">Ingreso</option>
-                    <option value="gasto_fijo">Gasto Fijo</option>
-                    <option value="gasto_variable">Gasto Variable</option>
-                    <option value="inversion">Inversión</option>
-                    <option value="deuda">Deuda</option>
+                    {tiposMovimiento.map((tipo) => (
+                        <option key={tipo.value} value={tipo.value}>
+                            {tipo.label}
+                        </option>
+                    ))}
                 </select>
             </div>
 
             <div className="mb-3">
-                <label className="form-label">Categoría</label>
+                <label htmlFor="transaction-category" className="form-label">Categoría</label>
                 <select
+                    id="transaction-category"
                     className="form-select bg-dark text-light border-secondary border-opacity-50"
                     value={form.categoria}
                     onChange={(e) =>
@@ -90,8 +96,9 @@ export default function TransactionForm({ onGuardar }) {
             </div>
 
             <div className="mb-3">
-                <label className="form-label">Monto (€)</label>
+                <label htmlFor="transaction-amount" className="form-label">Monto (€)</label>
                 <input
+                    id="transaction-amount"
                     type="number"
                     min="0.01"
                     step="0.01"
@@ -113,8 +120,9 @@ export default function TransactionForm({ onGuardar }) {
             </div>
 
             <div className="mb-3">
-                <label className="form-label">Descripción</label>
+                <label htmlFor="transaction-description" className="form-label">Descripción</label>
                 <input
+                    id="transaction-description"
                     type="text"
                     className="form-control bg-dark text-light border-secondary border-opacity-50"
                     placeholder="Detalles adicionales..."
@@ -125,8 +133,8 @@ export default function TransactionForm({ onGuardar }) {
                 />
             </div>
 
-            <button type="submit" className="btn btn-primary w-100">
-                Guardar
+            <button type="submit" className="btn btn-primary w-100" disabled={guardando}>
+                {guardando ? "Guardando..." : "Guardar"}
             </button>
         </form>
     );

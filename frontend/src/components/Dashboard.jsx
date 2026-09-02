@@ -20,6 +20,7 @@ const MESES = [
 
 export default function Dashboard({ transacciones = [] }) {
     const hoy = new Date();
+    const anioActual = hoy.getFullYear();
     const [mesSeleccionado, setMesSeleccionado] = useState(
         String(hoy.getMonth() + 1).padStart(2, "0"),
     );
@@ -28,12 +29,11 @@ export default function Dashboard({ transacciones = [] }) {
     );
 
     const aniosDisponibles = useMemo(() => {
-        const anioActual = hoy.getFullYear();
         const lista = [];
         for (let a = anioActual - 5; a <= anioActual + 2; a++)
             lista.push(String(a));
         return lista;
-    }, []);
+    }, [anioActual]);
 
     const periodoActual = `${anioSeleccionado}-${mesSeleccionado}`;
     const periodoAnterior = useMemo(() => {

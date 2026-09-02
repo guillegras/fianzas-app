@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 
 const MESES = [
     "Enero",
@@ -17,12 +17,31 @@ const MESES = [
 
 const DIAS_SEMANA = ["L", "M", "X", "J", "V", "S", "D"];
 
-export default function CustomDatePicker({ value, onChange }) {
+const fechaLocal = (value) => {
+    if (!value) return new Date();
+    const [anio, mes, dia] = value.split("-").map(Number);
+    return new Date(anio, mes - 1, dia);
+};
+
+const hoyLocal = () => {
+    const hoy = new Date();
+    return `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, "0")}-${String(hoy.getDate()).padStart(2, "0")}`;
+};
+
+export default function CustomDatePicker({ id, value, onChange }) {
     const [isOpen, setIsOpen] = useState(false);
 
-    const fechaActual = value ? new Date(value) : new Date();
+    const fechaActual = fechaLocal(value);
     const [mesVista, setMesVista] = useState(fechaActual.getMonth());
     const [anioVista, setAnioVista] = useState(fechaActual.getFullYear());
+
+    useEffect(() => {
+        const fecha = fechaLocal(value);
+        queueMicrotask(() => {
+            setMesVista(fecha.getMonth());
+            setAnioVista(fecha.getFullYear());
+        });
+    }, [value]);
 
     const diasDelMes = useMemo(() => {
         const primerDiaDelMes = new Date(anioVista, mesVista, 1);
@@ -94,7 +113,18 @@ export default function CustomDatePicker({ value, onChange }) {
         <div className="position-relative w-100">
             <div
                 className="form-control bg-dark text-light border-secondary border-opacity-50 d-flex justify-content-between align-items-center py-2 px-3"
-                style={{ cursor: "pointer", userSelect: "none" }}
+                id={id}
+                role="button"
+                tabIndex="0"
+                aria-haspopup="dialog"
+                aria-expanded={isOpen}
+                aria-label={fechaFormateadaVisual}
+                onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        setIsOpen((open) => !open);
+                    }
+                }}
                 onClick={() => setIsOpen(!isOpen)}
             >
                 <span className={value ? "text-light" : "text-muted"}>
@@ -130,12 +160,13 @@ export default function CustomDatePicker({ value, onChange }) {
                     className="position-absolute start-0 mt-2 p-3 bg-dark border border-secondary border-opacity-50 rounded-4 shadow-lg text-light"
                     style={{
                         zIndex: 1050,
-                        width: "310px",
-                        backgroundColor: "#16181d !important",
+                        width: "min(310px, calc(100vw - 2rem))",
+                        backgroundColor: "#16181d",
                     }}
                 >
                     <div className="d-flex justify-content-between align-items-center mb-3">
                         <button
+                            aria-label="Mes anterior"
                             type="button"
                             className="btn btn-sm btn-outline-secondary border-0 text-light p-0 rounded-circle d-flex align-items-center justify-content-center"
                             style={{ width: "32px", height: "32px" }}
@@ -147,6 +178,7 @@ export default function CustomDatePicker({ value, onChange }) {
                             {MESES[mesVista]} {anioVista}
                         </span>
                         <button
+                            aria-label="Mes siguiente"
                             type="button"
                             className="btn btn-sm btn-outline-secondary border-0 text-light p-0 rounded-circle d-flex align-items-center justify-content-center"
                             style={{ width: "32px", height: "32px" }}
@@ -169,7 +201,7 @@ export default function CustomDatePicker({ value, onChange }) {
                             const esSeleccionado = item.fechaStr === value;
                             const esHoy =
                                 item.fechaStr ===
-                                new Date().toISOString().split("T")[0];
+                                hoyLocal();
 
                             return (
                                 <div
