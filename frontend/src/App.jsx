@@ -3,20 +3,27 @@ import {
     Suspense,
     useState,
     useEffect,
-    useCallback,
     useMemo,
 } from "react";
-import api from "./services/api";
 import TransactionForm from "./components/TransactionForm";
 import TransactionList from "./components/TransactionList";
-import CustomDatePicker from "./components/CustomDatePicker";
-import { categoriasPorTipo, tiposMovimiento } from "./utils/constants";
+import FiltersPanel from "./components/FiltersPanel";
 import { filterTransactions } from "./utils/transactions";
+import useTransactions from "./hooks/useTransactions";
 
 const Dashboard = lazy(() => import("./components/Dashboard"));
 
 export default function App() {
-    const [transacciones, setTransacciones] = useState([]);
+    const {
+        transacciones,
+        estadoCarga,
+        error,
+        guardando,
+        eliminando,
+        cargarDatos,
+        guardarTransaccion,
+        eliminarTransaccion,
+    } = useTransactions();
     const [showModal, setShowModal] = useState(false);
     const [vistaActiva, setVistaActiva] = useState("dashboard");
 
@@ -30,26 +37,6 @@ export default function App() {
     const [filtroAnio, setFiltroAnio] = useState("");
     const [filtroFechaInicio, setFiltroFechaInicio] = useState("");
     const [filtroFechaFin, setFiltroFechaFin] = useState("");
-    const [estadoCarga, setEstadoCarga] = useState("loading");
-    const [error, setError] = useState("");
-    const [guardando, setGuardando] = useState(false);
-    const [eliminando, setEliminando] = useState(false);
-
-    const cargarDatos = useCallback(async (signal) => {
-        setEstadoCarga("loading");
-        setError("");
-        try {
-            const data = await api.getTransacciones({ signal });
-            setTransacciones(data);
-            setEstadoCarga("ready");
-        } catch (error) {
-            if (error.name === "AbortError") return;
-            setEstadoCarga("error");
-            setError("No se han podido cargar los movimientos.");
-            console.error("Error cargando datos:", error);
-        }
-    }, []);
-
     useEffect(() => {
         document.documentElement.setAttribute("data-bs-theme", "dark");
         const handleEscape = (event) => {
@@ -59,43 +46,8 @@ export default function App() {
             }
         };
         document.addEventListener("keydown", handleEscape);
-        const controller = new AbortController();
-        queueMicrotask(() => cargarDatos(controller.signal));
-        return () => {
-            controller.abort();
-            document.removeEventListener("keydown", handleEscape);
-        };
-    }, [cargarDatos]);
-
-    const handleGuardarTransaccion = async (nuevaTransaccion) => {
-        setGuardando(true);
-        setError("");
-        try {
-            await api.crearTransaccion(nuevaTransaccion);
-            setShowModal(false);
-            cargarDatos();
-        } catch (error) {
-            setError("No se ha podido guardar el movimiento.");
-            console.error("Error guardando:", error);
-            throw error;
-        } finally {
-            setGuardando(false);
-        }
-    };
-
-    const handleEliminarTransaccion = async (id) => {
-        setEliminando(true);
-        setError("");
-        try {
-            await api.eliminarTransaccion(id);
-            cargarDatos();
-        } catch (error) {
-            setError("No se ha podido eliminar el movimiento.");
-            console.error("Error eliminando:", error);
-        } finally {
-            setEliminando(false);
-        }
-    };
+        return () => document.removeEventListener("keydown", handleEscape);
+    }, []);
 
     const limpiarFiltros = () => {
         setFiltroTipo("");
@@ -107,18 +59,6 @@ export default function App() {
         setFiltroFechaInicio("");
         setFiltroFechaFin("");
     };
-
-    // Categorías dinámicas basadas en el tipo seleccionado utilizando categoriasPorTipo
-    const categoriasDisponibles = filtroTipo
-        ? categoriasPorTipo[filtroTipo] || []
-        : [];
-    const filtrosInvalidos =
-        (filtroMontoMin !== "" &&
-            filtroMontoMax !== "" &&
-            Number(filtroMontoMin) > Number(filtroMontoMax)) ||
-        (filtroFechaInicio !== "" &&
-            filtroFechaFin !== "" &&
-            filtroFechaInicio > filtroFechaFin);
 
     const transaccionesFiltradas = useMemo(
         () =>
@@ -144,6 +84,31 @@ export default function App() {
             filtroFechaFin,
         ],
     );
+
+    const filtros = {
+        tipo: filtroTipo,
+        categoria: filtroCategoria,
+        montoMin: filtroMontoMin,
+        montoMax: filtroMontoMax,
+        mes: filtroMes,
+        anio: filtroAnio,
+        fechaInicio: filtroFechaInicio,
+        fechaFin: filtroFechaFin,
+    };
+
+    const actualizarFiltro = (nombre, valor) => {
+        const setters = {
+            tipo: setFiltroTipo,
+            categoria: setFiltroCategoria,
+            montoMin: setFiltroMontoMin,
+            montoMax: setFiltroMontoMax,
+            mes: setFiltroMes,
+            anio: setFiltroAnio,
+            fechaInicio: setFiltroFechaInicio,
+            fechaFin: setFiltroFechaFin,
+        };
+        setters[nombre](valor);
+    };
 
     return (
         <div className="container my-5">
@@ -278,201 +243,20 @@ export default function App() {
                     ) : (
                         <TransactionList
                             transacciones={transaccionesFiltradas}
-                            onEliminar={handleEliminarTransaccion}
+                            onEliminar={eliminarTransaccion}
                             eliminando={eliminando}
                         />
                     )}
                 </div>
             </div>
 
-            {/* Panel Lateral de Filtros (Offcanvas) */}
-            <div
-                className={`offcanvas offcanvas-end ${showFiltros ? "show" : ""}`}
-                tabIndex="-1"
-                role="dialog"
-                aria-modal="true"
-                aria-labelledby="filters-title"
-                aria-hidden={!showFiltros}
-                style={{ visibility: showFiltros ? "visible" : "hidden" }}
-            >
-                <div className="offcanvas-header border-bottom">
-                    <h5 id="filters-title" className="offcanvas-title fw-bold">
-                        Filtros de Búsqueda
-                    </h5>
-                    <button
-                        type="button"
-                        className="btn-close"
-                        onClick={() => setShowFiltros(false)}
-                        aria-label="Cerrar filtros"
-                    ></button>
-                </div>
-                <div className="offcanvas-body">
-                    {/* Tipo de Movimiento (Sincronizado con los 5 tipos del formulario) */}
-                    <div className="mb-3">
-                        <label
-                            htmlFor="filter-type"
-                            className="form-label text-muted small"
-                        >
-                            Tipo de movimiento
-                        </label>
-                        <select
-                            id="filter-type"
-                            className="form-select"
-                            value={filtroTipo}
-                            onChange={(e) => {
-                                setFiltroTipo(e.target.value);
-                                setFiltroCategoria(""); // Reseteamos la categoría al cambiar de tipo
-                            }}
-                        >
-                            <option value="">Todos</option>
-                            {tiposMovimiento.map((tipo) => (
-                                <option key={tipo.value} value={tipo.value}>
-                                    {tipo.label}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-
-                    {/* Categoría (Desplegable dinámico según el tipo seleccionado) */}
-                    <div className="mb-3">
-                        <label
-                            htmlFor="filter-category"
-                            className="form-label text-muted small"
-                        >
-                            Categoría
-                        </label>
-                        <select
-                            id="filter-category"
-                            className="form-select"
-                            value={filtroCategoria}
-                            onChange={(e) => setFiltroCategoria(e.target.value)}
-                            disabled={!filtroTipo}
-                        >
-                            <option value="">Todas las categorías</option>
-                            {categoriasDisponibles.map((cat, i) => (
-                                <option key={i} value={cat}>
-                                    {cat}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-
-                    <div className="mb-3">
-                        <span className="form-label text-muted small d-block">
-                            Rango de Importe (€)
-                        </span>
-                        {filtrosInvalidos && (
-                            <div
-                                className="text-danger small mb-2"
-                                role="alert"
-                            >
-                                El rango indicado no es válido.
-                            </div>
-                        )}
-                        <div className="input-group">
-                            <input
-                                type="number"
-                                aria-label="Importe mínimo"
-                                className="form-control"
-                                placeholder="Mínimo"
-                                value={filtroMontoMin}
-                                onChange={(e) =>
-                                    setFiltroMontoMin(e.target.value)
-                                }
-                            />
-                            <span className="input-group-text">-</span>
-                            <input
-                                type="number"
-                                aria-label="Importe máximo"
-                                className="form-control"
-                                placeholder="Máximo"
-                                value={filtroMontoMax}
-                                onChange={(e) =>
-                                    setFiltroMontoMax(e.target.value)
-                                }
-                            />
-                        </div>
-                    </div>
-
-                    {/* Filtro Rápido por Mes y Año */}
-                    <div className="mb-3">
-                        <span className="form-label text-muted small d-block">
-                            Filtro Rápido (Mes y Año)
-                        </span>
-                        <div className="row g-2">
-                            <div className="col-7">
-                                <select
-                                    aria-label="Mes"
-                                    className="form-select form-select-sm"
-                                    value={filtroMes}
-                                    onChange={(e) =>
-                                        setFiltroMes(e.target.value)
-                                    }
-                                >
-                                    <option value="">Mes (Todos)</option>
-                                    <option value="01">Enero</option>
-                                    <option value="02">Febrero</option>
-                                    <option value="03">Marzo</option>
-                                    <option value="04">Abril</option>
-                                    <option value="05">Mayo</option>
-                                    <option value="06">Junio</option>
-                                    <option value="07">Julio</option>
-                                    <option value="08">Agosto</option>
-                                    <option value="09">Septiembre</option>
-                                    <option value="10">Octubre</option>
-                                    <option value="11">Noviembre</option>
-                                    <option value="12">Diciembre</option>
-                                </select>
-                            </div>
-                            <div className="col-5">
-                                <input
-                                    type="text"
-                                    aria-label="Año"
-                                    className="form-control form-control-sm"
-                                    placeholder="Año (Ej: 2026)"
-                                    value={filtroAnio}
-                                    onChange={(e) =>
-                                        setFiltroAnio(e.target.value)
-                                    }
-                                />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="mb-4">
-                        <span className="form-label text-muted small d-block">
-                            Rango de Fechas Concretas
-                        </span>
-                        <div className="mb-2">
-                            <CustomDatePicker
-                                id="filter-start-date"
-                                value={filtroFechaInicio}
-                                onChange={setFiltroFechaInicio}
-                            />
-                        </div>
-                        <CustomDatePicker
-                            id="filter-end-date"
-                            value={filtroFechaFin}
-                            onChange={setFiltroFechaFin}
-                        />
-                    </div>
-
-                    <button
-                        className="btn btn-outline-danger w-100"
-                        onClick={limpiarFiltros}
-                    >
-                        Limpiar todos los filtros
-                    </button>
-                </div>
-            </div>
-
-            {showFiltros && (
-                <div
-                    className="offcanvas-backdrop fade show"
-                    role="presentation"
-                    onClick={() => setShowFiltros(false)}
-                ></div>
-            )}
+            <FiltersPanel
+                filters={filtros}
+                onChange={actualizarFiltro}
+                onClear={limpiarFiltros}
+                show={showFiltros}
+                onClose={() => setShowFiltros(false)}
+            />
 
             {/* Modal de Nueva Transacción */}
             {showModal && (
@@ -505,7 +289,10 @@ export default function App() {
                             </div>
                             <div className="modal-body">
                                 <TransactionForm
-                                    onGuardar={handleGuardarTransaccion}
+                                    onGuardar={async (transaccion) => {
+                                        await guardarTransaccion(transaccion);
+                                        setShowModal(false);
+                                    }}
                                     guardando={guardando}
                                 />
                             </div>
