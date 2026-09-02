@@ -23,6 +23,9 @@ pnpm-debug.log*
 backend/venv/
 __pycache__/
 *.pyc
+.pytest_cache/
+.coverage
+htmlcov/
 
 # Base de datos local
 finanzas_data/

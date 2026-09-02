@@ -4,8 +4,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-import main
-from database import Base
+from finanzas_api import main
+from finanzas_api.database import Base
 
 
 @pytest.fixture()

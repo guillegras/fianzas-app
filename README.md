@@ -21,7 +21,9 @@ El `.env` de la raíz está ignorado por Git. Nunca se deben versionar credencia
 
 ## Estructura
 
-- `backend/`: API FastAPI, modelos y acceso a datos.
+- `backend/src/finanzas_api/`: API FastAPI, modelos y acceso a datos.
+- `backend/tests/`: tests de integración aislados con SQLite en memoria.
+- `backend/requirements*.txt`: dependencias de runtime y desarrollo.
 - `frontend/`: aplicación React/Vite y sus dependencias propias.
 - `dev.sh`: arranque local coordinado de base de datos, API y frontend.
 - `docker-compose.yml`: servicio de PostgreSQL.

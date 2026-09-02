@@ -42,7 +42,7 @@ if [[ ! -d frontend/node_modules ]]; then
 fi
 
 echo "Iniciando backend en http://localhost:8000..."
-backend/venv/bin/python -m uvicorn main:app --app-dir backend --reload &
+backend/venv/bin/python -m uvicorn finanzas_api.main:app --app-dir backend/src --reload &
 BACKEND_PID=$!
 
 echo "Iniciando frontend en http://localhost:5173..."
