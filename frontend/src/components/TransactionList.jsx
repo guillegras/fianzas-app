@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import ConfirmModal from "./ConfirmModal";
 import { configTipos } from "../utils/constants";
 import { formatCurrency } from "../utils/transactions";
+
+const MOVIMIENTOS_POR_PAGINA = 100;
 
 export default function TransactionList({
     transacciones = [],
@@ -9,6 +11,17 @@ export default function TransactionList({
     eliminando = false,
 }) {
     const [idAEliminar, setIdAEliminar] = useState(null);
+    const [pagina, setPagina] = useState(1);
+
+    const totalPaginas = Math.max(
+        1,
+        Math.ceil(transacciones.length / MOVIMIENTOS_POR_PAGINA),
+    );
+    const paginaActual = Math.min(pagina, totalPaginas);
+    const movimientosVisibles = useMemo(() => {
+        const inicio = (paginaActual - 1) * MOVIMIENTOS_POR_PAGINA;
+        return transacciones.slice(inicio, inicio + MOVIMIENTOS_POR_PAGINA);
+    }, [paginaActual, transacciones]);
 
     const confirmarEliminacion = (id) => {
         setIdAEliminar(id);
@@ -23,7 +36,14 @@ export default function TransactionList({
 
     return (
         <div className="card bg-dark border-0 shadow-sm p-4">
-            <h5 className="mb-4 text-light">Historial de Movimientos</h5>
+            <div className="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 mb-4">
+                <h5 className="mb-0 text-light">Historial de Movimientos</h5>
+                {transacciones.length > 0 && (
+                    <span className="text-muted small" aria-live="polite">
+                        {transacciones.length} movimientos · Página {paginaActual} de {totalPaginas}
+                    </span>
+                )}
+            </div>
             <div className="table-responsive">
                 <table className="table table-dark table-hover align-middle mb-0">
                     <thead>
@@ -41,7 +61,7 @@ export default function TransactionList({
                         </tr>
                     </thead>
                     <tbody>
-                        {transacciones.map((t) => {
+                        {movimientosVisibles.map((t) => {
                             const tipoSeguro = t.tipo || "gasto_fijo";
                             const visual = configTipos[tipoSeguro] || {
                                 label: tipoSeguro,
@@ -128,6 +148,30 @@ export default function TransactionList({
                     </tbody>
                 </table>
             </div>
+
+            {transacciones.length > 0 && totalPaginas > 1 && (
+                <nav className="d-flex justify-content-center align-items-center gap-3 mt-4" aria-label="Paginación de movimientos">
+                    <button
+                        type="button"
+                        className="btn btn-sm btn-outline-secondary"
+                        onClick={() => setPagina((current) => Math.max(1, current - 1))}
+                        disabled={paginaActual === 1}
+                    >
+                        Anterior
+                    </button>
+                    <span className="small text-muted" aria-current="page">
+                        {paginaActual} / {totalPaginas}
+                    </span>
+                    <button
+                        type="button"
+                        className="btn btn-sm btn-outline-secondary"
+                        onClick={() => setPagina((current) => Math.min(totalPaginas, current + 1))}
+                        disabled={paginaActual === totalPaginas}
+                    >
+                        Siguiente
+                    </button>
+                </nav>
+            )}
 
             {/* Modal de confirmación personalizado */}
             <ConfirmModal
