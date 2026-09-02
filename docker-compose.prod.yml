@@ -4,7 +4,7 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${DB_USER:-postgres}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgrespassword}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env before starting production}
       POSTGRES_DB: ${DB_NAME:-finanzas_db}
     volumes:
       - pgdata_prod:/var/lib/postgresql/data
@@ -22,7 +22,7 @@ services:
     restart: unless-stopped
     environment:
       DB_USER: ${DB_USER:-postgres}
-      DB_PASSWORD: ${DB_PASSWORD:-postgrespassword}
+      DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env before starting production}
       DB_NAME: ${DB_NAME:-finanzas_db}
       DB_PORT: 5432
       DB_HOST: db
@@ -49,6 +49,11 @@ services:
     depends_on:
       backend:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "--quiet", "http://localhost/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - app
 

@@ -15,14 +15,14 @@ local.
 	cd finanzas-app
 	```
 
-2. Opcionalmente, crea `.env` para personalizar la instalación:
+2. Crea `.env` y define una contraseña propia para PostgreSQL:
 
 	```bash
 	cp .env.example .env
 	```
 
-	El archivo `.env` está ignorado por Git. Nunca guardes credenciales reales
-	en el repositorio.
+	Cambia al menos `DB_PASSWORD` por una contraseña segura. El archivo `.env`
+	está ignorado por Git. Nunca guardes credenciales reales en el repositorio.
 
 3. Levanta el stack de producción local:
 

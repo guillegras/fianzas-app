@@ -20,7 +20,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="API Finanzas Personales",
-    version="1.0",
+    version="0.1.0",
     lifespan=lifespan,
 )
 
