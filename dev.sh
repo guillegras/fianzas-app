@@ -1,39 +1,58 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -Eeuo pipefail
 
-# Cargar variables del .env de forma segura
-export $(grep -v '^#' .env | xargs)
+ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+cd "$ROOT_DIR"
 
-echo "🚀 Preparando base de datos PostgreSQL..."
-
-if [ ! "$(docker ps -a -q -f name=$DB_NAME)" ]; then
-  echo "Creando base de datos por primera vez..."
-  docker run --name $DB_NAME \
-    -e POSTGRES_USER=$DB_USER \
-    -e POSTGRES_PASSWORD=$DB_PASSWORD \
-    -e POSTGRES_DB=$DB_NAME \
-    -v finanzas_data:/var/lib/postgresql/data \
-    -p $DB_PORT:$DB_PORT -d postgres:15
-else
-  echo "Arrancando base de datos existente..."
-  docker start $DB_NAME
+if [[ ! -f .env ]]; then
+    cp .env.example .env
+    echo "Se ha creado .env desde .env.example. Revisa sus valores si lo necesitas."
 fi
 
-echo "⏳ Esperando a que PostgreSQL esté listo..."
-until docker exec $DB_NAME pg_isready -U $DB_USER > /dev/null 2>&1; do
-  sleep 1
-done
-echo "✅ ¡Base de datos lista!"
+set -a
+source .env
+set +a
 
-echo "🐍 Arrancando Backend de FastAPI..."
-cd backend
-./venv/bin/uvicorn main:app --reload &
+: "${DB_USER:=postgres}"
+: "${DB_PASSWORD:=postgrespassword}"
+: "${DB_NAME:=finanzas_db}"
+: "${DB_PORT:=5432}"
+export DB_USER DB_PASSWORD DB_NAME DB_PORT
+
+echo "Preparando PostgreSQL..."
+docker compose up -d db
+
+echo "Esperando a que PostgreSQL esté listo..."
+until docker compose exec -T db pg_isready -U "$DB_USER" -d "$DB_NAME" >/dev/null 2>&1; do
+    sleep 1
+done
+echo "PostgreSQL listo."
+
+if [[ ! -d backend/venv ]]; then
+    echo "Creando entorno virtual de Python..."
+    python3 -m venv backend/venv
+fi
+
+echo "Instalando dependencias del backend..."
+backend/venv/bin/python -m pip install --disable-pip-version-check -q -r backend/requirements.txt
+
+if [[ ! -d frontend/node_modules ]]; then
+    echo "Instalando dependencias del frontend..."
+    npm --prefix frontend install
+fi
+
+echo "Iniciando backend en http://localhost:8000..."
+backend/venv/bin/python -m uvicorn main:app --app-dir backend --reload &
 BACKEND_PID=$!
 
-echo "⚛️ Arrancando Frontend de React..."
-cd ../frontend
-npm run dev &
+echo "Iniciando frontend en http://localhost:5173..."
+npm --prefix frontend run dev -- --host 0.0.0.0 &
 FRONTEND_PID=$!
 
-# Cerrar todo ordenadamente esperando a los procesos
-trap "kill $BACKEND_PID $FRONTEND_PID; wait $BACKEND_PID $FRONTEND_PID 2>/dev/null; exit" INT
+cleanup() {
+    kill "$BACKEND_PID" "$FRONTEND_PID" 2>/dev/null || true
+    wait "$BACKEND_PID" "$FRONTEND_PID" 2>/dev/null || true
+}
+
+trap cleanup INT TERM EXIT
 wait

@@ -12,6 +12,14 @@ Frontend React + Vite para consultar, registrar y eliminar movimientos financier
 
 ## Desarrollo
 
+Desde la raíz del repositorio, el arranque recomendado es:
+
+```bash
+./dev.sh
+```
+
+También puedes ejecutar solo el frontend:
+
 ```bash
 npm install
 npm run dev
