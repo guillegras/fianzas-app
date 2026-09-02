@@ -2,6 +2,14 @@
 
 Frontend React + Vite para consultar, registrar y eliminar movimientos financieros.
 
+## Estructura
+
+- `components/`: piezas visuales reutilizables.
+- `hooks/`: estado y efectos compartidos de la aplicación.
+- `services/`: comunicación con la API.
+- `utils/`: constantes y lógica pura testeable.
+- `App.jsx`: composición de vistas y estado de navegación.
+
 ## Desarrollo
 
 ```bash
