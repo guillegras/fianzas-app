@@ -115,9 +115,12 @@ code {
 /* Clase específica para los importes económicos */
 .font-mono {
     font-family: var(--mono);
+<<<<<<< HEAD
 }
 
 /* Forzar esquema oscuro nativo en los inputs de fecha para estilizar el calendario */
 input[type="date"] {
     color-scheme: dark;
+=======
+>>>>>>> f72a14ad696998f1014f58e9f734a0e2abd65476
 }

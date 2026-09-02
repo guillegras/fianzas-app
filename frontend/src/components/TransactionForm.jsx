@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { categoriasPorTipo } from "../utils/constants";
+<<<<<<< HEAD
 import CustomDatePicker from "./CustomDatePicker";
+=======
+>>>>>>> f72a14ad696998f1014f58e9f734a0e2abd65476
 
 export default function TransactionForm({ onGuardar }) {
     const [form, setForm] = useState({
@@ -29,6 +32,10 @@ export default function TransactionForm({ onGuardar }) {
             tipo: form.tipo,
             categoria: form.categoria,
             fecha: form.fecha,
+<<<<<<< HEAD
+=======
+            // Aplicamos trim() para limpiar espacios vacíos accidentales al inicio o final
+>>>>>>> f72a14ad696998f1014f58e9f734a0e2abd65476
             descripcion: form.descripcion.trim(),
         });
         setForm({
@@ -44,6 +51,7 @@ export default function TransactionForm({ onGuardar }) {
 
     return (
         <form onSubmit={handleSubmit}>
+<<<<<<< HEAD
             <div className="mb-3">
                 <label className="form-label text-muted small uppercase fw-semibold">
                     Fecha
@@ -60,6 +68,27 @@ export default function TransactionForm({ onGuardar }) {
                 <label className="form-label">Tipo</label>
                 <select
                     className="form-select bg-dark text-light border-secondary border-opacity-50"
+=======
+            {/* 1. Fecha */}
+            <div className="mb-3">
+                <label className="form-label">Fecha</label>
+                <input
+                    type="date"
+                    className="form-control"
+                    value={form.fecha}
+                    onChange={(e) =>
+                        setForm({ ...form, fecha: e.target.value })
+                    }
+                    required
+                />
+            </div>
+
+            {/* 2. Tipo */}
+            <div className="mb-3">
+                <label className="form-label">Tipo</label>
+                <select
+                    className="form-select"
+>>>>>>> f72a14ad696998f1014f58e9f734a0e2abd65476
                     value={form.tipo}
                     onChange={handleTipoChange}
                 >
@@ -71,10 +100,18 @@ export default function TransactionForm({ onGuardar }) {
                 </select>
             </div>
 
+<<<<<<< HEAD
             <div className="mb-3">
                 <label className="form-label">Categoría</label>
                 <select
                     className="form-select bg-dark text-light border-secondary border-opacity-50"
+=======
+            {/* 3. Categoría */}
+            <div className="mb-3">
+                <label className="form-label">Categoría</label>
+                <select
+                    className="form-select"
+>>>>>>> f72a14ad696998f1014f58e9f734a0e2abd65476
                     value={form.categoria}
                     onChange={(e) =>
                         setForm({ ...form, categoria: e.target.value })
@@ -89,13 +126,21 @@ export default function TransactionForm({ onGuardar }) {
                 </select>
             </div>
 
+<<<<<<< HEAD
+=======
+            {/* 4. Monto */}
+>>>>>>> f72a14ad696998f1014f58e9f734a0e2abd65476
             <div className="mb-3">
                 <label className="form-label">Monto (€)</label>
                 <input
                     type="number"
                     min="0.01"
                     step="0.01"
+<<<<<<< HEAD
                     className="form-control bg-dark text-light border-secondary border-opacity-50"
+=======
+                    className="form-control"
+>>>>>>> f72a14ad696998f1014f58e9f734a0e2abd65476
                     placeholder="0.00"
                     value={form.monto}
                     onKeyDown={(e) => {
@@ -112,11 +157,19 @@ export default function TransactionForm({ onGuardar }) {
                 />
             </div>
 
+<<<<<<< HEAD
+=======
+            {/* 5. Descripción */}
+>>>>>>> f72a14ad696998f1014f58e9f734a0e2abd65476
             <div className="mb-3">
                 <label className="form-label">Descripción</label>
                 <input
                     type="text"
+<<<<<<< HEAD
                     className="form-control bg-dark text-light border-secondary border-opacity-50"
+=======
+                    className="form-control"
+>>>>>>> f72a14ad696998f1014f58e9f734a0e2abd65476
                     placeholder="Detalles adicionales..."
                     value={form.descripcion}
                     onChange={(e) =>

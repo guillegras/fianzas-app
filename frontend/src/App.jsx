@@ -3,7 +3,10 @@ import api from "./services/api";
 import TransactionForm from "./components/TransactionForm";
 import TransactionList from "./components/TransactionList";
 import Dashboard from "./components/Dashboard";
+<<<<<<< HEAD
 import CustomDatePicker from "./components/CustomDatePicker";
+=======
+>>>>>>> f72a14ad696998f1014f58e9f734a0e2abd65476
 import { categoriasPorTipo } from "./utils/constants";
 
 export default function App() {
@@ -357,6 +360,7 @@ export default function App() {
                         <label className="form-label text-muted small">
                             Rango de Fechas Concretas
                         </label>
+<<<<<<< HEAD
                         <div className="mb-2">
                             <CustomDatePicker
                                 value={filtroFechaInicio}
@@ -366,6 +370,21 @@ export default function App() {
                         <CustomDatePicker
                             value={filtroFechaFin}
                             onChange={setFiltroFechaFin}
+=======
+                        <input
+                            type="date"
+                            className="form-control mb-2"
+                            value={filtroFechaInicio}
+                            onChange={(e) =>
+                                setFiltroFechaInicio(e.target.value)
+                            }
+                        />
+                        <input
+                            type="date"
+                            className="form-control"
+                            value={filtroFechaFin}
+                            onChange={(e) => setFiltroFechaFin(e.target.value)}
+>>>>>>> f72a14ad696998f1014f58e9f734a0e2abd65476
                         />
                     </div>
 
