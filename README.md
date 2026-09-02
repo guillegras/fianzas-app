@@ -14,6 +14,9 @@ ajusta sus valores antes de arrancar.
 
 Mantén `VITE_API_URL` vacío en desarrollo local para usar el proxy de Vite.
 
+En Docker, configura `DB_HOST=db`. `CORS_ORIGINS` solo es necesario si el
+frontend se sirve desde un origen distinto al backend.
+
 El `.env` de la raíz está ignorado por Git. Nunca se deben versionar credenciales reales.
 
 ## Estructura
@@ -22,6 +25,14 @@ El `.env` de la raíz está ignorado por Git. Nunca se deben versionar credencia
 - `frontend/`: aplicación React/Vite y sus dependencias propias.
 - `dev.sh`: arranque local coordinado de base de datos, API y frontend.
 - `docker-compose.yml`: servicio de PostgreSQL.
+
+La API expone `/health` para comprobar que el proceso está vivo y `/ready` para
+comprobar que también puede acceder a PostgreSQL. El listado acepta paginación
+opcional con `limit` (máximo 100) y `offset`.
+
+Si ya existía una base de datos creada con una versión anterior, el cambio de
+importes de `Float` a `Numeric(12, 2)` requiere una migración antes de usarla
+en producción. Las bases nuevas se crean con el tipo correcto.
 
 ## Desarrollo
 
