@@ -1,0 +1,90 @@
+import { configTipos } from "../utils/constants";
+
+export default function DashboardTable({ tablaCategorias }) {
+    const renderDiferencia = (item) => {
+        if (item.diferencia === 0)
+            return <span className="text-muted font-mono">0.00 €</span>;
+
+        const isIngreso = item.tipo === "ingreso";
+        const impacto = isIngreso ? item.diferencia : -item.diferencia;
+        const colorClass = impacto > 0 ? "text-success" : "text-danger";
+        const signo = impacto < 0 ? "-" : "";
+
+        return (
+            <span className={`${colorClass} fw-bold font-mono`}>
+                {signo}
+                {Math.abs(impacto).toFixed(2)} €
+            </span>
+        );
+    };
+
+    return (
+        <div className="row mt-2">
+            <div className="col-12 mb-4">
+                <div className="card bg-dark border-0 shadow-sm p-4">
+                    <h5 className="mb-4 text-light">
+                        Desglose de Categorías y Comparativa Intermensual
+                    </h5>
+                    <div className="table-responsive">
+                        <table className="table table-dark table-hover align-middle m-0">
+                            <thead>
+                                <tr>
+                                    <th>Categoría</th>
+                                    <th>Tipo</th>
+                                    <th className="text-end text-muted">
+                                        Mes Anterior
+                                    </th>
+                                    <th className="text-end">Mes Actual</th>
+                                    <th className="text-end">Diferencia</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {tablaCategorias.map((item, index) => (
+                                    <tr key={index}>
+                                        <td className="fw-medium text-light">
+                                            {item.categoria}
+                                        </td>
+                                        <td>
+                                            <span
+                                                className="badge text-white"
+                                                style={{
+                                                    backgroundColor:
+                                                        configTipos[item.tipo]
+                                                            ?.color ||
+                                                        "#6c757d",
+                                                }}
+                                            >
+                                                {configTipos[item.tipo]
+                                                    ?.label || item.tipo}
+                                            </span>
+                                        </td>
+                                        <td className="text-end text-muted font-mono">
+                                            {item.anterior.toFixed(2)} €
+                                        </td>
+                                        <td className="text-end fw-bold font-mono text-light">
+                                            {item.actual.toFixed(2)} €
+                                        </td>
+                                        <td className="text-end">
+                                            {renderDiferencia(item)}
+                                        </td>
+                                    </tr>
+                                ))}
+                                {tablaCategorias.length === 0 && (
+                                    <tr>
+                                        <td
+                                            colSpan="5"
+                                            className="text-center text-muted py-4"
+                                        >
+                                            No hay datos para comparar en estos
+                                            periodos.
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}

@@ -23,11 +23,11 @@ api.crearTransaccion = async (transaccionData) => {
 };
 
 api.eliminarTransaccion = async (id) => {
-  const response = await fetch(`http://localhost:8000/transacciones/${id}`, {
-    method: 'DELETE',
-  });
-  if (!response.ok) throw new Error("Error al eliminar");
-  return response.json();
-}
+    const response = await fetch(`http://localhost:8000/transacciones/${id}`, {
+        method: "DELETE",
+    });
+    if (!response.ok) throw new Error("Error al eliminar");
+    return response.json();
+};
 
 export default api;

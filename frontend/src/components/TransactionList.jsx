@@ -1,54 +1,128 @@
-import { configTipos } from '../utils/constants';
+import { useState } from "react";
+import ConfirmModal from "./ConfirmModal";
+import { configTipos } from "../utils/constants";
 
-export default function TransactionList({ transacciones, onEliminar }) {
-  return (
-    <div className="card p-4 shadow-sm">
-      <div className="table-responsive">
-        <table className="table table-striped align-middle mt-2">
-          <thead>
-            <tr>
-              <th>Fecha</th>
-              <th>Tipo</th>
-              <th>Categoría</th>
-              <th>Monto</th>
-              <th>Descripción</th>
-              <th className="text-center">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {transacciones.map(t => {
-              const visual = configTipos[t.tipo] || { label: t.tipo, color: "#6c757d" };
-              return (
-                <tr key={t.id}>
-                  <td>{t.fecha}</td>
-                  <td>
-                    <span className="badge" style={{ backgroundColor: visual.color }}>
-                      {visual.label}
-                    </span>
-                  </td>
-                  <td><strong>{t.categoria || t.titulo}</strong></td>
-                  <td>{t.monto} €</td>
-                  <td>{t.descripcion || '-'}</td>
-                  <td className="text-center">
-                    <button 
-                      className="btn btn-sm btn-outline-danger border-0" 
-                      onClick={() => onEliminar(t.id)}
-                      title="Eliminar"
-                    >
-                      🗑️
-                    </button>
-                  </td>
-                </tr>
-              );
-            })}
-            {transacciones.length === 0 && (
-              <tr>
-                <td colSpan="6" className="text-center text-muted py-4">No hay registros todavía.</td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
+export default function TransactionList({ transacciones = [], onEliminar }) {
+    const [idAEliminar, setIdAEliminar] = useState(null);
+
+    const confirmarEliminacion = (id) => {
+        setIdAEliminar(id);
+    };
+
+    const ejecutarEliminar = () => {
+        if (idAEliminar) {
+            onEliminar(idAEliminar);
+            setIdAEliminar(null);
+        }
+    };
+
+    return (
+        <div className="card bg-dark border-0 shadow-sm p-4">
+            <h5 className="mb-4 text-light">Historial de Movimientos</h5>
+            <div className="table-responsive">
+                <table className="table table-dark table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Tipo</th>
+                            <th>Categoría</th>
+                            <th>Descripción</th>
+                            <th className="text-end">Monto</th>
+                            <th className="text-end">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {transacciones.map((t) => {
+                            const tipoSeguro = t.tipo || "gasto_fijo";
+                            const visual = configTipos[tipoSeguro] || {
+                                label: tipoSeguro,
+                                color: "#6c757d",
+                            };
+                            const montoSeguro = Number(t.monto) || 0;
+                            const esPositivo =
+                                tipoSeguro === "ingreso" ||
+                                tipoSeguro === "inversion";
+
+                            return (
+                                <tr key={t.id || Math.random()}>
+                                    <td className="text-muted">
+                                        {t.fecha || "Sin fecha"}
+                                    </td>
+                                    <td>
+                                        <span
+                                            className="badge text-white"
+                                            style={{
+                                                backgroundColor: visual.color,
+                                            }}
+                                        >
+                                            {visual.label}
+                                        </span>
+                                    </td>
+                                    <td className="fw-medium text-light">
+                                        {t.categoria ||
+                                            t.titulo ||
+                                            "Sin título"}
+                                    </td>
+                                    <td
+                                        className="text-muted text-truncate"
+                                        style={{ maxWidth: "200px" }}
+                                    >
+                                        {t.descripcion || "-"}
+                                    </td>
+                                    <td
+                                        className={`font-mono fw-bold text-end ${esPositivo ? "text-success" : "text-danger"}`}
+                                    >
+                                        {montoSeguro.toFixed(2)} €
+                                    </td>
+                                    <td className="text-end">
+                                        <button
+                                            className="btn btn-sm btn-outline-danger border-0"
+                                            onClick={() =>
+                                                confirmarEliminacion(t.id)
+                                            }
+                                            title="Eliminar movimiento"
+                                        >
+                                            <svg
+                                                width="16"
+                                                height="16"
+                                                viewBox="0 0 24 24"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                strokeWidth="2"
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                            >
+                                                <path d="M3 6h18" />
+                                                <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                                                <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                                            </svg>
+                                        </button>
+                                    </td>
+                                </tr>
+                            );
+                        })}
+                        {transacciones.length === 0 && (
+                            <tr>
+                                <td
+                                    colSpan="6"
+                                    className="text-center text-muted py-4"
+                                >
+                                    No hay movimientos registrados.
+                                </td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
+            </div>
+
+            {/* Modal de confirmación personalizado */}
+            <ConfirmModal
+                show={Boolean(idAEliminar)}
+                title="Eliminar Movimiento"
+                message="¿Estás seguro de que quieres eliminar este registro? Esta acción no se puede deshacer."
+                onConfirm={ejecutarEliminar}
+                onCancel={() => setIdAEliminar(null)}
+            />
+        </div>
+    );
 }

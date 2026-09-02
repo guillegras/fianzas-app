@@ -1,20 +1,17 @@
-from fastapi import FastAPI, Depends, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy.orm import Session
-from sqlalchemy import text
-from typing import List
-from database import SessionLocal, engine
 import models
 import schemas
+from database import SessionLocal, engine
+from fastapi import Depends, FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import text
+from sqlalchemy.orm import Session
 
-# Crea las tablas automáticamente si no existen
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="API Finanzas Personales", version="1.0")
 
-# --- CONFIGURACIÓN DE CORS ---
 origins = [
-    "http://localhost:5173",  # Permitir el frontend de Vite
+    "http://localhost:5173",
     "http://127.0.0.1:5173",
 ]
 
@@ -26,6 +23,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 def get_db():
     db = SessionLocal()
     try:
@@ -33,36 +31,48 @@ def get_db():
     finally:
         db.close()
 
+
 @app.get("/")
 def leer_raiz():
     return {"mensaje": "¡Servidor y base de datos de finanzas listos!"}
 
+
 @app.get("/probar-conexion")
-def probar_conexion(db: Session = Depends(get_db)):
+def probar_conexion(db: Session = Depends(get_db)):  # noqa: B008
     try:
         resultado = db.execute(text("SELECT 1")).scalar()
         return {"estado": "Conexión exitosa", "resultado_db": resultado}
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         return {"estado": "Error de conexión", "detalle": str(e)}
 
-# --- ENDPOINTS FINANCIEROS ---
 
 @app.post("/transacciones/", response_model=schemas.TransaccionResponse)
-def crear_transaccion(transaccion: schemas.TransaccionCreate, db: Session = Depends(get_db)):
+def crear_transaccion(
+    transaccion: schemas.TransaccionCreate,
+    db: Session = Depends(get_db),  # noqa: B008
+):
     nueva_transaccion = models.Transaccion(**transaccion.model_dump())
     db.add(nueva_transaccion)
     db.commit()
     db.refresh(nueva_transaccion)
     return nueva_transaccion
 
-@app.get("/transacciones/", response_model=List[schemas.TransaccionResponse])
-def listar_transacciones(db: Session = Depends(get_db)):
-    transacciones = db.query(models.Transaccion).all()
+
+@app.get("/transacciones/", response_model=list[schemas.TransaccionResponse])
+def listar_transacciones(db: Session = Depends(get_db)):  # noqa: B008
+    transacciones = (
+        db.query(models.Transaccion).order_by(models.Transaccion.fecha.desc()).all()
+    )
     return transacciones
 
+
 @app.delete("/transacciones/{transaccion_id}")
-def delete_transaccion(transaccion_id: int, db: Session = Depends(get_db)):
-    transaccion = db.query(models.Transaccion).filter(models.Transaccion.id == transaccion_id).first()
+def delete_transaccion(transaccion_id: int, db: Session = Depends(get_db)):  # noqa: B008
+    transaccion = (
+        db.query(models.Transaccion)
+        .filter(models.Transaccion.id == transaccion_id)
+        .first()
+    )
     if not transaccion:
         raise HTTPException(status_code=404, detail="Transacción no encontrada")
     db.delete(transaccion)
