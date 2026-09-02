@@ -47,9 +47,7 @@ export default function TransactionList({
                                 color: "#6c757d",
                             };
                             const montoSeguro = Number(t.monto) || 0;
-                            const esPositivo =
-                                tipoSeguro === "ingreso" ||
-                                tipoSeguro === "inversion";
+                            const esPositivo = tipoSeguro === "ingreso";
 
                             return (
                                 <tr

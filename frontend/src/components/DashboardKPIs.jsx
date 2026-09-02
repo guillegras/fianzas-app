@@ -26,10 +26,10 @@ export default function DashboardKPIs({ transaccionesMes }) {
                     </h4>
                 </div>
 
-                {/* Gastos Totales */}
+                {/* Salidas Totales */}
                 <div className="col-md col-sm-6 border-end border-secondary border-opacity-25">
                     <span className="text-muted small text-uppercase fw-semibold d-block mb-1">
-                        Gastos
+                        Salidas
                     </span>
                     <h4 className="font-mono fw-bold text-danger mb-0">
                         {gastosTotales.toFixed(2)} €

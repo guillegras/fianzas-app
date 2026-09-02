@@ -69,7 +69,7 @@ export default function Dashboard({ transacciones = [] }) {
 
     const resumenActual = summarizeTransactions(transaccionesMes);
     const ingresos = resumenActual.ingresos;
-    const gastos = getTotalExpenses(resumenActual);
+    const salidas = getTotalExpenses(resumenActual);
 
     const tablaCategorias = useMemo(() => {
         const mapa = {};
@@ -160,7 +160,7 @@ export default function Dashboard({ transacciones = [] }) {
             <DashboardKPIs transaccionesMes={transaccionesMes} />
             <DashboardCharts
                 ingresos={ingresos}
-                gastos={gastos}
+                gastos={salidas}
                 transaccionesMes={transaccionesMes}
             />
             <DashboardTable tablaCategorias={tablaCategorias} />

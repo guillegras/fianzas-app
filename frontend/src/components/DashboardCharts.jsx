@@ -11,6 +11,10 @@ import {
     ResponsiveContainer,
 } from "recharts";
 import { configTipos } from "../utils/constants";
+import {
+    getTransactionAmount,
+    getTransactionCategory,
+} from "../utils/transactions";
 
 export default function DashboardCharts({
     ingresos,
@@ -26,7 +30,7 @@ export default function DashboardCharts({
             fill: configTipos.ingreso?.color || "#198754",
         },
         {
-            nombre: "Gastos",
+            nombre: "Salidas",
             cantidad: gastos, // Usa el total unificado de salidas (fijos, variables, inversiones, deudas)
             fill: configTipos.gasto_variable?.color || "#dc3545",
         },
@@ -36,7 +40,7 @@ export default function DashboardCharts({
         .filter((t) => t.tipo !== "ingreso")
         .reduce((acc, t) => {
             if (t.tipo) {
-                acc[t.tipo] = (acc[t.tipo] || 0) + (Number(t.monto) || 0);
+                acc[t.tipo] = (acc[t.tipo] || 0) + getTransactionAmount(t);
             }
             return acc;
         }, {});
@@ -52,8 +56,8 @@ export default function DashboardCharts({
         ? transaccionesMes
               .filter((t) => t.tipo === tipoSeleccionado)
               .reduce((acc, t) => {
-                  const cat = t.categoria || t.titulo || "Sin categoría";
-                  acc[cat] = (acc[cat] || 0) + (Number(t.monto) || 0);
+                  const cat = getTransactionCategory(t);
+                  acc[cat] = (acc[cat] || 0) + getTransactionAmount(t);
                   return acc;
               }, {})
         : {};
@@ -67,7 +71,7 @@ export default function DashboardCharts({
             <div className="col-md-6">
                 <div className="card bg-dark border-0 shadow-sm p-4 h-100">
                     <h5 className="mb-4 text-center text-light">
-                        Ingresos vs Gastos
+                        Ingresos vs Salidas
                     </h5>
                     <div style={{ height: 300 }}>
                         <ResponsiveContainer width="100%" height="100%">
