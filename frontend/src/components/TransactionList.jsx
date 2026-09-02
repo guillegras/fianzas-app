@@ -132,7 +132,7 @@ export default function TransactionList({
 
             {/* Modal de confirmación personalizado */}
             <ConfirmModal
-                show={Boolean(idAEliminar)}
+                show={idAEliminar !== null}
                 title="Eliminar Movimiento"
                 message="¿Estás seguro de que quieres eliminar este registro? Esta acción no se puede deshacer."
                 onConfirm={ejecutarEliminar}

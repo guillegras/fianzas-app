@@ -289,10 +289,14 @@ export default function App() {
             <div
                 className={`offcanvas offcanvas-end ${showFiltros ? "show" : ""}`}
                 tabIndex="-1"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="filters-title"
+                aria-hidden={!showFiltros}
                 style={{ visibility: showFiltros ? "visible" : "hidden" }}
             >
                 <div className="offcanvas-header border-bottom">
-                    <h5 className="offcanvas-title fw-bold">
+                    <h5 id="filters-title" className="offcanvas-title fw-bold">
                         Filtros de Búsqueda
                     </h5>
                     <button

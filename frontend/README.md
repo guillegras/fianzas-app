@@ -9,7 +9,8 @@ npm install
 npm run dev
 ```
 
-La API se configura con `VITE_API_URL`. Si no se define, se usa `http://localhost:8000`.
+En desarrollo, Vite redirige automáticamente las peticiones a la API local en `http://localhost:8000`.
+Para un backend remoto, configura `VITE_API_URL`.
 
 ```bash
 VITE_API_URL=http://localhost:8000 npm run dev
