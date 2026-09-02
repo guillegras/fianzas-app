@@ -50,3 +50,13 @@ cd frontend
 npm install
 npm run dev
 ```
+
+## Tests del backend
+
+```bash
+backend/venv/bin/python -m pip install -r backend/requirements-dev.txt
+cd backend
+venv/bin/pytest
+```
+
+Los tests usan SQLite en memoria y no modifican la base de datos local.

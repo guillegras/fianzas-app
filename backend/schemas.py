@@ -2,7 +2,7 @@ from datetime import date
 from decimal import Decimal
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 # 1. Esquema base (acepta cualquier monto para poder leer el historial antiguo)
@@ -29,5 +29,4 @@ class TransaccionCreate(TransaccionBase):
 class TransaccionResponse(TransaccionBase):
     id: int
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
