@@ -17,8 +17,9 @@ npm install
 npm run dev
 ```
 
+La configuración de entorno está centralizada en `../.env`. Usa `../.env.example` como plantilla.
 En desarrollo, Vite redirige automáticamente las peticiones a la API local en `http://localhost:8000`.
-Para un backend remoto, configura `VITE_API_URL`.
+Para un backend remoto, configura `VITE_API_URL` en el `.env` de la raíz.
 
 ```bash
 VITE_API_URL=http://localhost:8000 npm run dev
