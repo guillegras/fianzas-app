@@ -3,6 +3,8 @@
 Aplicación de finanzas personales para uso local. La aplicación y su base de
 datos se ejecutan en Docker y solo son accesibles desde el mismo equipo.
 
+**Versión actual: `0.1.0`**
+
 ## Requisitos
 
 Necesitas:
@@ -100,6 +102,20 @@ docker compose -f docker-compose.prod.yml up -d --build
 ```
 
 La base de datos se conserva porque está guardada en un volumen de Docker.
+
+## Versionado
+
+El proyecto utiliza [versionado semántico](https://semver.org/lang/es/):
+
+- `0.1.0`: primera versión funcional, todavía en etapa inicial.
+- `0.1.1`: corrección de errores sin cambios importantes.
+- `0.2.0`: nueva funcionalidad compatible con la versión anterior.
+- `1.0.0`: primera versión estable o cambio incompatible importante.
+
+Cada versión publicada debe identificarse con una etiqueta de Git, por ejemplo
+`v0.1.0`, y publicarse como una Release en GitHub. La etiqueta es la referencia
+oficial de la versión; el README y las versiones internas del frontend y la API
+deben mantenerse sincronizados con ella.
 
 ## Datos y copias de seguridad
 
