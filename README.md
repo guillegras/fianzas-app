@@ -1,84 +1,147 @@
 # Finanzas App
 
-Aplicación de finanzas personales lista para ejecutar con Docker.
+Aplicación de finanzas personales para uso local. La aplicación y su base de
+datos se ejecutan en Docker y solo son accesibles desde el mismo equipo.
 
 ## Requisitos
 
-- Docker Desktop en Windows o macOS.
-- Docker Engine y Docker Compose en Linux.
-- Acceso a Internet durante el primer arranque para descargar las imágenes.
+Necesitas:
 
-No necesitas instalar Python, Node.js, npm ni PostgreSQL.
+1. [Git](https://git-scm.com/downloads), para descargar el repositorio.
+2. Docker:
+	 - [Docker Desktop para Windows y macOS](https://www.docker.com/products/docker-desktop/).
+	 - [Docker Engine para Linux](https://docs.docker.com/engine/install/).
+3. Conexión a Internet durante el primer arranque para descargar las imágenes.
+
+No necesitas instalar Python, Node.js, npm ni PostgreSQL. Docker Desktop debe
+estar abierto antes de ejecutar la aplicación en Windows o macOS.
 
 ## Instalación
 
-### Linux y macOS
+### 1. Descargar el proyecto
+
+En Linux o macOS, abre Terminal. En Windows, abre PowerShell.
 
 ```bash
-git clone <URL_DEL_REPOSITORIO>
-cd finanzas-app
+git clone https://github.com/guillegras/fianzas-app.git
+cd fianzas-app
+```
+
+También puedes utilizar SSH si tienes una clave configurada en GitHub:
+
+```bash
+git clone git@github.com:guillegras/fianzas-app.git
+cd fianzas-app
+```
+
+### 2. Crear la configuración local
+
+Linux y macOS:
+
+```bash
 cp .env.example .env
 ```
 
-### Windows (PowerShell)
+Windows PowerShell:
 
 ```powershell
-git clone <URL_DEL_REPOSITORIO>
-cd finanzas-app
 Copy-Item .env.example .env
 ```
 
-Edita `.env` y cambia `DB_PASSWORD` por una contraseña propia. No compartas
-ese archivo ni guardes credenciales reales en GitHub.
+Abre el archivo `.env` y cambia `DB_PASSWORD` por una contraseña propia. Este
+archivo contiene configuración privada y no debe subirse a GitHub.
 
-## Arranque
+## Ejecutar la aplicación
 
-Con Docker Desktop o Docker Engine iniciado, ejecuta desde la carpeta del
-repositorio:
+Desde la carpeta `fianzas-app`, ejecuta:
 
 ```bash
 docker compose -f docker-compose.prod.yml up -d --build
 ```
 
-La primera ejecución puede tardar unos minutos. Cuando termine, abre:
+Este comando descarga las imágenes necesarias, construye la aplicación, crea
+la base de datos y deja los servicios funcionando en segundo plano. La primera
+ejecución puede tardar unos minutos.
+
+Cuando termine, abre esta dirección en el navegador:
 
 **http://localhost:8080**
 
-Los contenedores se reinician automáticamente si Docker se reinicia. Para que
-la aplicación vuelva a arrancar después de encender el equipo, activa el inicio
-automático de Docker Desktop o configura Docker Engine para iniciar con el
-sistema.
+La aplicación solo escucha en `localhost`; ningún otro dispositivo de la red
+puede acceder a ella. Cada equipo mantiene sus propios datos.
 
-La aplicación está configurada para aceptar conexiones únicamente desde el
-propio equipo. No es accesible desde otros dispositivos de la red.
+## Uso diario
 
-## Comandos útiles
-
-Ver el estado:
-
-```bash
-docker compose -f docker-compose.prod.yml ps
-```
-
-Ver los registros:
-
-```bash
-docker compose -f docker-compose.prod.yml logs -f
-```
-
-Detener la aplicación sin borrar los datos:
-
-```bash
-docker compose -f docker-compose.prod.yml down
-```
-
-Para volver a iniciarla:
+Si la aplicación está detenida, vuelve a iniciarla con:
 
 ```bash
 docker compose -f docker-compose.prod.yml up -d
 ```
 
-No uses `down -v`: eliminaría también los datos guardados en PostgreSQL.
+Para detenerla sin borrar los datos:
 
-Si el puerto `8080` está ocupado, cambia `APP_PORT` en `.env` por otro, por
-ejemplo `8081`, y accede después a `http://localhost:8081`.
+```bash
+docker compose -f docker-compose.prod.yml down
+```
+
+Para comprobar el estado de los servicios:
+
+```bash
+docker compose -f docker-compose.prod.yml ps
+```
+
+## Actualizar la aplicación
+
+Para descargar la última versión y reconstruirla:
+
+```bash
+git pull
+docker compose -f docker-compose.prod.yml up -d --build
+```
+
+La base de datos se conserva porque está guardada en un volumen de Docker.
+
+## Datos y copias de seguridad
+
+Los datos se guardan en el volumen `pgdata_prod` y sobreviven a la parada o
+reconstrucción de los contenedores.
+
+Puedes crear una copia de seguridad antes de una actualización:
+
+```bash
+docker compose -f docker-compose.prod.yml exec -T db \
+	pg_dump -U postgres finanzas_db > backup.sql
+```
+
+No ejecutes el siguiente comando salvo que quieras borrar todos los datos:
+
+```bash
+docker compose -f docker-compose.prod.yml down -v
+```
+
+## Configuración opcional
+
+Si el puerto `8080` ya está ocupado, edita `.env` y cambia:
+
+```env
+APP_PORT=8081
+```
+
+Después reinicia la aplicación y accede a
+[http://localhost:8081](http://localhost:8081).
+
+Para que la aplicación se inicie automáticamente al encender el equipo,
+activa el inicio automático de Docker Desktop o configura Docker Engine para
+iniciarse con el sistema.
+
+## Solución rápida de problemas
+
+- Si Docker no responde, comprueba que Docker Desktop o Docker Engine esté
+	iniciado.
+- Si la página no carga inmediatamente tras el primer arranque, espera unos
+	segundos y vuelve a abrirla.
+- Para consultar los registros de todos los servicios:
+
+	```bash
+	docker compose -f docker-compose.prod.yml logs -f
+	```
