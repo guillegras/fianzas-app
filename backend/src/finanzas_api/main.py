@@ -22,6 +22,7 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+
 def get_db():
     db = SessionLocal()
     try:
