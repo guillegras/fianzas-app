@@ -11,61 +11,16 @@ import {
     ResponsiveContainer,
 } from "recharts";
 import { configTipos } from "../utils/constants";
-import {
-    formatCurrency,
-    getTransactionAmount,
-    getTransactionCategory,
-} from "../utils/transactions";
+import { formatCurrency } from "../utils/transactions";
 
-export default function DashboardCharts({
-    ingresos,
-    gastos,
-    transaccionesMes,
-}) {
+export default function DashboardCharts({ graficos }) {
     const [tipoSeleccionado, setTipoSeleccionado] = useState(null);
+    const { dataBarras, dataPastel, desgloses } = graficos;
 
-    const dataBarras = [
-        {
-            nombre: "Ingresos",
-            cantidad: ingresos,
-            fill: configTipos.ingreso?.color || "#198754",
-        },
-        {
-            nombre: "Salidas",
-            cantidad: gastos, // Usa el total unificado de salidas (fijos, variables, inversiones, deudas)
-            fill: configTipos.gasto_variable?.color || "#dc3545",
-        },
-    ];
-
-    const salidasPorTipo = transaccionesMes
-        .filter((t) => t.tipo !== "ingreso")
-        .reduce((acc, t) => {
-            if (t.tipo) {
-                acc[t.tipo] = (acc[t.tipo] || 0) + getTransactionAmount(t);
-            }
-            return acc;
-        }, {});
-
-    const dataPastel = Object.keys(salidasPorTipo).map((tipo) => ({
-        name: configTipos[tipo]?.label || tipo,
-        tipoId: tipo,
-        value: salidasPorTipo[tipo],
-        color: configTipos[tipo]?.color || "#6c757d",
-    }));
-
-    const desgloseCategoria = tipoSeleccionado
-        ? transaccionesMes
-              .filter((t) => t.tipo === tipoSeleccionado)
-              .reduce((acc, t) => {
-                  const cat = getTransactionCategory(t);
-                  acc[cat] = (acc[cat] || 0) + getTransactionAmount(t);
-                  return acc;
-              }, {})
-        : {};
-
-    const dataDesglose = Object.keys(desgloseCategoria)
-        .map((cat) => ({ name: cat, value: desgloseCategoria[cat] }))
-        .sort((a, b) => b.value - a.value);
+    const dataDesglose =
+        tipoSeleccionado && desgloses[tipoSeleccionado]
+            ? desgloses[tipoSeleccionado]
+            : [];
 
     return (
         <div className="row g-3 mb-4">
@@ -100,7 +55,14 @@ export default function DashboardCharts({
                                         "Cantidad",
                                     ]}
                                 />
-                                <Bar dataKey="cantidad" radius={[4, 4, 0, 0]} />
+                                <Bar dataKey="cantidad" radius={[4, 4, 0, 0]}>
+                                    {dataBarras.map((entry, index) => (
+                                        <Cell
+                                            key={`cell-${index}`}
+                                            fill={entry.fill}
+                                        />
+                                    ))}
+                                </Bar>
                             </BarChart>
                         </ResponsiveContainer>
                     </div>
@@ -133,7 +95,7 @@ export default function DashboardCharts({
                                     : "col-12 h-100"
                             }
                         >
-                            {dataPastel.length > 0 ? (
+                            {dataPastel?.length > 0 ? (
                                 <ResponsiveContainer width="100%" height="100%">
                                     <PieChart>
                                         <Pie

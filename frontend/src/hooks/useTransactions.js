@@ -1,32 +1,49 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import api from "../services/api";
 
 export default function useTransactions() {
     const [transacciones, setTransacciones] = useState([]);
+    const [resumenDashboard, setResumenDashboard] = useState(null);
+    const [totalPaginas, setTotalPaginas] = useState(1);
     const [estadoCarga, setEstadoCarga] = useState("loading");
     const [error, setError] = useState("");
     const [guardando, setGuardando] = useState(false);
     const [eliminando, setEliminando] = useState(false);
 
-    const cargarDatos = useCallback(async (signal) => {
+    const currentParamsRef = useRef({
+        filtros: {},
+        pagina: 1,
+        vistaActiva: "dashboard",
+    });
+
+    const cargarDatos = useCallback(async (filtros, pagina, vistaActiva) => {
+        currentParamsRef.current = { filtros, pagina, vistaActiva };
         setEstadoCarga("loading");
         setError("");
         try {
-            const data = await api.getTransacciones({ signal });
-            setTransacciones(data);
+            if (vistaActiva === "dashboard") {
+                const data = await api.getResumen(filtros);
+                setResumenDashboard(data);
+            } else {
+                const params = {
+                    ...filtros,
+                    limit: 100,
+                    offset: (pagina - 1) * 100,
+                };
+                const data = await api.getTransacciones(params);
+                setTransacciones(data.items || []);
+                setTotalPaginas(data.total_pages || 1);
+            }
             setEstadoCarga("ready");
-        } catch (requestError) {
-            if (requestError.name === "AbortError") return;
+        } catch {
             setEstadoCarga("error");
-            setError("No se han podido cargar los movimientos.");
-            console.error("Error cargando datos:", requestError);
+            setError("No se han podido cargar los datos.");
         }
     }, []);
 
-    useEffect(() => {
-        const controller = new AbortController();
-        queueMicrotask(() => cargarDatos(controller.signal));
-        return () => controller.abort();
+    const recargarDatos = useCallback(() => {
+        const { filtros, pagina, vistaActiva } = currentParamsRef.current;
+        return cargarDatos(filtros, pagina, vistaActiva);
     }, [cargarDatos]);
 
     const guardarTransaccion = useCallback(
@@ -35,16 +52,15 @@ export default function useTransactions() {
             setError("");
             try {
                 await api.crearTransaccion(transaccion);
-                await cargarDatos();
+                await recargarDatos();
             } catch (requestError) {
                 setError("No se ha podido guardar el movimiento.");
-                console.error("Error guardando:", requestError);
                 throw requestError;
             } finally {
                 setGuardando(false);
             }
         },
-        [cargarDatos],
+        [recargarDatos],
     );
 
     const eliminarTransaccion = useCallback(
@@ -53,19 +69,20 @@ export default function useTransactions() {
             setError("");
             try {
                 await api.eliminarTransaccion(id);
-                await cargarDatos();
-            } catch (requestError) {
+                await recargarDatos();
+            } catch {
                 setError("No se ha podido eliminar el movimiento.");
-                console.error("Error eliminando:", requestError);
             } finally {
                 setEliminando(false);
             }
         },
-        [cargarDatos],
+        [recargarDatos],
     );
 
     return {
         transacciones,
+        resumenDashboard,
+        totalPaginas,
         estadoCarga,
         error,
         guardando,

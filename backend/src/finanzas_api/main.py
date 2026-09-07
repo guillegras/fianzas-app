@@ -1,12 +1,15 @@
+import os
 from contextlib import asynccontextmanager
 
-from . import models, schemas
-from .database import SessionLocal, engine
-from .migrations import initialize_schema
-from fastapi import Depends, FastAPI, HTTPException, Query, Response, status
+from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
+
+from .api.v1 import transactions
+from .core.database import SessionLocal, engine
+from .core.migrations import initialize_schema
 
 
 @asynccontextmanager
@@ -21,6 +24,18 @@ app = FastAPI(
     version="0.1.0",
     lifespan=lifespan,
 )
+
+origenes_permitidos = os.getenv("CORS_ORIGINS", "http://localhost:5173").split(",")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origenes_permitidos,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.include_router(transactions.router)
 
 
 def get_db():
@@ -62,74 +77,4 @@ def readiness(db: Session = Depends(get_db)):  # noqa: B008
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="La base de datos no está disponible.",
-        ) from None
-
-
-@app.post("/transacciones/", response_model=schemas.TransaccionResponse)
-def crear_transaccion(
-    transaccion: schemas.TransaccionCreate,
-    db: Session = Depends(get_db),  # noqa: B008
-):
-    try:
-        nueva_transaccion = models.Transaccion(**transaccion.model_dump())
-        db.add(nueva_transaccion)
-        db.commit()
-        db.refresh(nueva_transaccion)
-        return nueva_transaccion
-    except SQLAlchemyError:
-        db.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="No se ha podido guardar la transacción.",
-        ) from None
-
-
-@app.get("/transacciones/", response_model=list[schemas.TransaccionResponse])
-def listar_transacciones(
-    response: Response,
-    limit: int | None = Query(default=None, ge=1, le=100),
-    offset: int = Query(default=0, ge=0),
-    db: Session = Depends(get_db),  # noqa: B008
-):
-    query = (
-        db.query(models.Transaccion)
-        .order_by(
-            models.Transaccion.fecha.desc(),
-            models.Transaccion.id.desc(),
-        )
-        .offset(offset)
-    )
-    if limit is not None:
-        query = query.limit(limit)
-
-    try:
-        transacciones = query.all()
-    except SQLAlchemyError:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="La base de datos no está disponible.",
-        ) from None
-
-    response.headers["X-Page-Limit"] = str(limit or "all")
-    response.headers["X-Page-Offset"] = str(offset)
-    return transacciones
-
-
-@app.delete("/transacciones/{transaccion_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_transaccion(transaccion_id: int, db: Session = Depends(get_db)):  # noqa: B008
-    transaccion = (
-        db.query(models.Transaccion)
-        .filter(models.Transaccion.id == transaccion_id)
-        .first()
-    )
-    if not transaccion:
-        raise HTTPException(status_code=404, detail="Transacción no encontrada")
-    try:
-        db.delete(transaccion)
-        db.commit()
-    except SQLAlchemyError:
-        db.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="No se ha podido eliminar la transacción.",
         ) from None

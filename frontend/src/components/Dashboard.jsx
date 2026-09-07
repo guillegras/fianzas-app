@@ -1,13 +1,7 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import DashboardKPIs from "./DashboardKPIs";
 import DashboardCharts from "./DashboardCharts";
 import DashboardTable from "./DashboardTable";
-import {
-    getTransactionAmount,
-    getTransactionCategory,
-    getTotalExpenses,
-    summarizeTransactions,
-} from "../utils/transactions";
 
 const MESES = [
     "Enero",
@@ -24,14 +18,19 @@ const MESES = [
     "Diciembre",
 ];
 
-export default function Dashboard({ transacciones = [] }) {
+export default function Dashboard({
+    datosDashboard,
+    mesGlobal,
+    anioGlobal,
+    onActualizarPeriodo,
+}) {
     const hoy = new Date();
     const anioActual = hoy.getFullYear();
     const [mesSeleccionado, setMesSeleccionado] = useState(
-        String(hoy.getMonth() + 1).padStart(2, "0"),
+        mesGlobal || String(hoy.getMonth() + 1).padStart(2, "0"),
     );
     const [anioSeleccionado, setAnioSeleccionado] = useState(
-        String(hoy.getFullYear()),
+        anioGlobal || String(hoy.getFullYear()),
     );
 
     const aniosDisponibles = useMemo(() => {
@@ -41,62 +40,20 @@ export default function Dashboard({ transacciones = [] }) {
         return lista;
     }, [anioActual]);
 
-    const periodoActual = `${anioSeleccionado}-${mesSeleccionado}`;
-    const periodoAnterior = useMemo(() => {
-        let mes = parseInt(mesSeleccionado, 10) - 1;
-        let anio = parseInt(anioSeleccionado, 10);
-        if (mes === 0) {
-            mes = 12;
-            anio -= 1;
-        }
-        return `${anio}-${String(mes).padStart(2, "0")}`;
-    }, [mesSeleccionado, anioSeleccionado]);
+    useEffect(() => {
+        setMesSeleccionado(mesGlobal);
+        setAnioSeleccionado(anioGlobal);
+    }, [mesGlobal, anioGlobal]);
 
-    const transaccionesMes = useMemo(
-        () =>
-            transacciones.filter(
-                (t) => t.fecha && t.fecha.startsWith(periodoActual),
-            ),
-        [transacciones, periodoActual],
-    );
-    const transaccionesAnterior = useMemo(
-        () =>
-            transacciones.filter(
-                (t) => t.fecha && t.fecha.startsWith(periodoAnterior),
-            ),
-        [transacciones, periodoAnterior],
-    );
+    if (!datosDashboard)
+        return (
+            <div className="text-muted text-center py-5">
+                Cargando métricas...
+            </div>
+        );
 
-    const resumenActual = summarizeTransactions(transaccionesMes);
-    const ingresos = resumenActual.ingresos;
-    const salidas = getTotalExpenses(resumenActual);
-
-    const tablaCategorias = useMemo(() => {
-        const mapa = {};
-        transaccionesMes.forEach((t) => {
-            const cat = getTransactionCategory(t);
-            if (!mapa[cat])
-                mapa[cat] = { tipo: t.tipo, actual: 0, anterior: 0 };
-            mapa[cat].actual += getTransactionAmount(t);
-        });
-        transaccionesAnterior.forEach((t) => {
-            const cat = getTransactionCategory(t);
-            if (!mapa[cat])
-                mapa[cat] = { tipo: t.tipo, actual: 0, anterior: 0 };
-            mapa[cat].anterior += getTransactionAmount(t);
-        });
-        return Object.entries(mapa)
-            .map(([categoria, data]) => ({
-                categoria,
-                tipo: data.tipo,
-                actual: data.actual,
-                anterior: data.anterior,
-                diferencia: data.actual - data.anterior,
-            }))
-            .sort((a, b) => b.actual - a.actual);
-    }, [transaccionesMes, transaccionesAnterior]);
-
-    const nombreMesTexto = MESES[parseInt(mesSeleccionado, 10) - 1];
+    const { kpis, graficos, tablaCategorias } = datosDashboard;
+    const nombreMesTexto = MESES[parseInt(mesGlobal, 10) - 1] || "";
 
     return (
         <div className="dashboard-container">
@@ -106,63 +63,73 @@ export default function Dashboard({ transacciones = [] }) {
                     <span className="text-muted small">
                         Visualizando periodo:{" "}
                         <strong className="text-light text-capitalize">
-                            {nombreMesTexto} {anioSeleccionado}
+                            {nombreMesTexto} {anioGlobal}
                         </strong>
                     </span>
                 </div>
-
-                <div className="d-flex align-items-center gap-2 bg-black bg-opacity-40 p-2 rounded-3 border border-secondary border-opacity-25 shadow-inner">
-                    <select
-                        className="form-select form-select-sm bg-transparent text-light border-0 shadow-none fw-medium"
-                        style={{ width: "130px", cursor: "pointer" }}
-                        value={mesSeleccionado}
-                        onChange={(e) => setMesSeleccionado(e.target.value)}
-                    >
-                        {MESES.map((nombre, index) => {
-                            const val = String(index + 1).padStart(2, "0");
-                            return (
+                <div className="d-flex align-items-center gap-2">
+                    <div className="d-flex align-items-center gap-2 bg-black bg-opacity-40 p-2 rounded-3 border border-secondary border-opacity-25 shadow-inner">
+                        <select
+                            className="form-select form-select-sm bg-transparent text-light border-0 shadow-none fw-medium"
+                            style={{ width: "130px", cursor: "pointer" }}
+                            value={mesSeleccionado}
+                            onChange={(e) => setMesSeleccionado(e.target.value)}
+                        >
+                            {MESES.map((nombre, index) => {
+                                const val = String(index + 1).padStart(2, "0");
+                                return (
+                                    <option
+                                        key={val}
+                                        value={val}
+                                        style={{
+                                            backgroundColor: "#1f2028",
+                                            color: "#fff",
+                                        }}
+                                    >
+                                        {nombre}
+                                    </option>
+                                );
+                            })}
+                        </select>
+                        <div className="text-secondary opacity-50">/</div>
+                        <select
+                            className="form-select form-select-sm bg-transparent text-light border-0 shadow-none fw-medium"
+                            style={{ width: "90px", cursor: "pointer" }}
+                            value={anioSeleccionado}
+                            onChange={(e) =>
+                                setAnioSeleccionado(e.target.value)
+                            }
+                        >
+                            {aniosDisponibles.map((anio) => (
                                 <option
-                                    key={val}
-                                    value={val}
+                                    key={anio}
+                                    value={anio}
                                     style={{
                                         backgroundColor: "#1f2028",
                                         color: "#fff",
                                     }}
                                 >
-                                    {nombre}
+                                    {anio}
                                 </option>
-                            );
-                        })}
-                    </select>
-                    <div className="text-secondary opacity-50">/</div>
-                    <select
-                        className="form-select form-select-sm bg-transparent text-light border-0 shadow-none fw-medium"
-                        style={{ width: "90px", cursor: "pointer" }}
-                        value={anioSeleccionado}
-                        onChange={(e) => setAnioSeleccionado(e.target.value)}
+                            ))}
+                        </select>
+                    </div>
+                    <button
+                        className="btn btn-sm btn-primary px-3 fw-bold"
+                        onClick={() =>
+                            onActualizarPeriodo(
+                                mesSeleccionado,
+                                anioSeleccionado,
+                            )
+                        }
                     >
-                        {aniosDisponibles.map((anio) => (
-                            <option
-                                key={anio}
-                                value={anio}
-                                style={{
-                                    backgroundColor: "#1f2028",
-                                    color: "#fff",
-                                }}
-                            >
-                                {anio}
-                            </option>
-                        ))}
-                    </select>
+                        Buscar
+                    </button>
                 </div>
             </div>
 
-            <DashboardKPIs transaccionesMes={transaccionesMes} />
-            <DashboardCharts
-                ingresos={ingresos}
-                gastos={salidas}
-                transaccionesMes={transaccionesMes}
-            />
+            <DashboardKPIs kpis={kpis} />
+            <DashboardCharts graficos={graficos} />
             <DashboardTable tablaCategorias={tablaCategorias} />
         </div>
     );

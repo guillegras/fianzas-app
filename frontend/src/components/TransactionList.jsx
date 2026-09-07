@@ -1,32 +1,19 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import ConfirmModal from "./ConfirmModal";
 import { configTipos } from "../utils/constants";
 import { formatCurrency } from "../utils/transactions";
-
-const MOVIMIENTOS_POR_PAGINA = 100;
 
 export default function TransactionList({
     transacciones = [],
     onEliminar,
     eliminando = false,
+    paginaActual,
+    totalPaginas,
+    onCambiarPagina,
 }) {
     const [idAEliminar, setIdAEliminar] = useState(null);
-    const [pagina, setPagina] = useState(1);
 
-    const totalPaginas = Math.max(
-        1,
-        Math.ceil(transacciones.length / MOVIMIENTOS_POR_PAGINA),
-    );
-    const paginaActual = Math.min(pagina, totalPaginas);
-    const movimientosVisibles = useMemo(() => {
-        const inicio = (paginaActual - 1) * MOVIMIENTOS_POR_PAGINA;
-        return transacciones.slice(inicio, inicio + MOVIMIENTOS_POR_PAGINA);
-    }, [paginaActual, transacciones]);
-
-    const confirmarEliminacion = (id) => {
-        setIdAEliminar(id);
-    };
-
+    const confirmarEliminacion = (id) => setIdAEliminar(id);
     const ejecutarEliminar = () => {
         if (idAEliminar !== null) {
             onEliminar(idAEliminar);
@@ -38,10 +25,9 @@ export default function TransactionList({
         <div className="card bg-dark border-0 shadow-sm p-4">
             <div className="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 mb-4">
                 <h5 className="mb-0 text-light">Historial de Movimientos</h5>
-                {transacciones.length > 0 && (
+                {totalPaginas > 0 && (
                     <span className="text-muted small" aria-live="polite">
-                        {transacciones.length} movimientos · Página{" "}
-                        {paginaActual} de {totalPaginas}
+                        Página {paginaActual} de {totalPaginas}
                     </span>
                 )}
             </div>
@@ -62,7 +48,7 @@ export default function TransactionList({
                         </tr>
                     </thead>
                     <tbody>
-                        {movimientosVisibles.map((t) => {
+                        {transacciones.map((t) => {
                             const tipoSeguro = t.tipo || "gasto_fijo";
                             const visual = configTipos[tipoSeguro] || {
                                 label: tipoSeguro,
@@ -149,8 +135,7 @@ export default function TransactionList({
                     </tbody>
                 </table>
             </div>
-
-            {transacciones.length > 0 && totalPaginas > 1 && (
+            {totalPaginas > 1 && (
                 <nav
                     className="d-flex justify-content-center align-items-center gap-3 mt-4"
                     aria-label="Paginación de movimientos"
@@ -159,7 +144,9 @@ export default function TransactionList({
                         type="button"
                         className="btn btn-sm btn-outline-secondary"
                         onClick={() =>
-                            setPagina((current) => Math.max(1, current - 1))
+                            onCambiarPagina((current) =>
+                                Math.max(1, current - 1),
+                            )
                         }
                         disabled={paginaActual === 1}
                     >
@@ -172,7 +159,7 @@ export default function TransactionList({
                         type="button"
                         className="btn btn-sm btn-outline-secondary"
                         onClick={() =>
-                            setPagina((current) =>
+                            onCambiarPagina((current) =>
                                 Math.min(totalPaginas, current + 1),
                             )
                         }
@@ -182,8 +169,6 @@ export default function TransactionList({
                     </button>
                 </nav>
             )}
-
-            {/* Modal de confirmación personalizado */}
             <ConfirmModal
                 show={idAEliminar !== null}
                 title="Eliminar Movimiento"

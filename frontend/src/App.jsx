@@ -1,15 +1,34 @@
-import { lazy, Suspense, useState, useEffect, useMemo } from "react";
+import { lazy, Suspense, useState, useEffect } from "react";
 import TransactionForm from "./components/TransactionForm";
 import TransactionList from "./components/TransactionList";
 import FiltersPanel from "./components/FiltersPanel";
-import { filterTransactions } from "./utils/transactions";
 import useTransactions from "./hooks/useTransactions";
 
 const Dashboard = lazy(() => import("./components/Dashboard"));
 
 export default function App() {
+    const [showModal, setShowModal] = useState(false);
+    const [vistaActiva, setVistaActiva] = useState("dashboard");
+    const [showFiltros, setShowFiltros] = useState(false);
+
+    const fechaActual = new Date();
+    const [filtrosActivos, setFiltrosActivos] = useState({
+        tipo: "",
+        categoria: "",
+        montoMin: "",
+        montoMax: "",
+        mes: String(fechaActual.getMonth() + 1).padStart(2, "0"),
+        anio: String(fechaActual.getFullYear()),
+        fechaInicio: "",
+        fechaFin: "",
+    });
+
+    const [pagina, setPagina] = useState(1);
+
     const {
         transacciones,
+        resumenDashboard,
+        totalPaginas,
         estadoCarga,
         error,
         guardando,
@@ -18,21 +37,12 @@ export default function App() {
         guardarTransaccion,
         eliminarTransaccion,
     } = useTransactions();
-    const [showModal, setShowModal] = useState(false);
-    const [vistaActiva, setVistaActiva] = useState("dashboard");
 
-    // Estados del panel lateral y filtros
-    const [showFiltros, setShowFiltros] = useState(false);
-    const [filtroTipo, setFiltroTipo] = useState("");
-    const [filtroCategoria, setFiltroCategoria] = useState("");
-    const [filtroMontoMin, setFiltroMontoMin] = useState("");
-    const [filtroMontoMax, setFiltroMontoMax] = useState("");
-    const [filtroMes, setFiltroMes] = useState("");
-    const [filtroAnio, setFiltroAnio] = useState("");
-    const [filtroFechaInicio, setFiltroFechaInicio] = useState("");
-    const [filtroFechaFin, setFiltroFechaFin] = useState("");
     useEffect(() => {
-        document.documentElement.setAttribute("data-bs-theme", "dark");
+        cargarDatos(filtrosActivos, pagina, vistaActiva);
+    }, [filtrosActivos, pagina, vistaActiva, cargarDatos]);
+
+    useEffect(() => {
         const handleEscape = (event) => {
             if (event.key === "Escape") {
                 setShowModal(false);
@@ -43,70 +53,34 @@ export default function App() {
         return () => document.removeEventListener("keydown", handleEscape);
     }, []);
 
+    const aplicarFiltros = (nuevosFiltros) => {
+        setFiltrosActivos(nuevosFiltros);
+        setPagina(1);
+        setShowFiltros(false);
+    };
+
     const limpiarFiltros = () => {
-        setFiltroTipo("");
-        setFiltroCategoria("");
-        setFiltroMontoMin("");
-        setFiltroMontoMax("");
-        setFiltroMes("");
-        setFiltroAnio("");
-        setFiltroFechaInicio("");
-        setFiltroFechaFin("");
-    };
-
-    const transaccionesFiltradas = useMemo(
-        () =>
-            filterTransactions(transacciones, {
-                tipo: filtroTipo,
-                categoria: filtroCategoria,
-                montoMin: filtroMontoMin,
-                montoMax: filtroMontoMax,
-                mes: filtroMes,
-                anio: filtroAnio,
-                fechaInicio: filtroFechaInicio,
-                fechaFin: filtroFechaFin,
-            }),
-        [
-            transacciones,
-            filtroTipo,
-            filtroCategoria,
-            filtroMontoMin,
-            filtroMontoMax,
-            filtroMes,
-            filtroAnio,
-            filtroFechaInicio,
-            filtroFechaFin,
-        ],
-    );
-
-    const filtros = {
-        tipo: filtroTipo,
-        categoria: filtroCategoria,
-        montoMin: filtroMontoMin,
-        montoMax: filtroMontoMax,
-        mes: filtroMes,
-        anio: filtroAnio,
-        fechaInicio: filtroFechaInicio,
-        fechaFin: filtroFechaFin,
-    };
-
-    const actualizarFiltro = (nombre, valor) => {
-        const setters = {
-            tipo: setFiltroTipo,
-            categoria: setFiltroCategoria,
-            montoMin: setFiltroMontoMin,
-            montoMax: setFiltroMontoMax,
-            mes: setFiltroMes,
-            anio: setFiltroAnio,
-            fechaInicio: setFiltroFechaInicio,
-            fechaFin: setFiltroFechaFin,
+        const filtrosVacios = {
+            tipo: "",
+            categoria: "",
+            montoMin: "",
+            montoMax: "",
+            mes: "",
+            anio: "",
+            fechaInicio: "",
+            fechaFin: "",
         };
-        setters[nombre](valor);
+        setFiltrosActivos(filtrosVacios);
+        setPagina(1);
+        setShowFiltros(false);
+    };
+
+    const actualizarPeriodoDashboard = (mes, anio) => {
+        setFiltrosActivos((prev) => ({ ...prev, mes, anio }));
     };
 
     return (
         <div className="container my-5">
-            {/* Cabecera Principal */}
             <div className="d-flex justify-content-between align-items-center mb-4">
                 <h1 className="h3 fw-bold mb-0">Gestor Financiero</h1>
                 <div className="d-flex gap-3">
@@ -129,7 +103,6 @@ export default function App() {
                         </svg>
                         Registrar Movimiento
                     </button>
-
                     {vistaActiva === "movimientos" && (
                         <button
                             className="btn btn-secondary d-inline-flex align-items-center gap-2"
@@ -153,7 +126,6 @@ export default function App() {
                 </div>
             </div>
 
-            {/* Navegación por pestañas */}
             <ul className="nav nav-tabs mb-4">
                 <li className="nav-item">
                     <button
@@ -204,19 +176,24 @@ export default function App() {
                 </li>
             </ul>
 
-            {/* Vistas */}
             <div className="row">
                 <div className="col-12">
                     {estadoCarga === "loading" ? (
                         <div className="alert alert-secondary" role="status">
-                            Cargando movimientos...
+                            Cargando datos...
                         </div>
                     ) : estadoCarga === "error" ? (
                         <div className="alert alert-danger" role="alert">
-                            {error}{" "}
+                            {error}
                             <button
                                 className="btn btn-sm btn-outline-danger ms-2"
-                                onClick={() => cargarDatos()}
+                                onClick={() =>
+                                    cargarDatos(
+                                        filtrosActivos,
+                                        pagina,
+                                        vistaActiva,
+                                    )
+                                }
                             >
                                 Reintentar
                             </button>
@@ -232,27 +209,34 @@ export default function App() {
                                 </div>
                             }
                         >
-                            <Dashboard transacciones={transacciones} />
+                            <Dashboard
+                                datosDashboard={resumenDashboard}
+                                mesGlobal={filtrosActivos.mes}
+                                anioGlobal={filtrosActivos.anio}
+                                onActualizarPeriodo={actualizarPeriodoDashboard}
+                            />
                         </Suspense>
                     ) : (
                         <TransactionList
-                            transacciones={transaccionesFiltradas}
+                            transacciones={transacciones}
                             onEliminar={eliminarTransaccion}
                             eliminando={eliminando}
+                            paginaActual={pagina}
+                            totalPaginas={totalPaginas}
+                            onCambiarPagina={setPagina}
                         />
                     )}
                 </div>
             </div>
 
             <FiltersPanel
-                filters={filtros}
-                onChange={actualizarFiltro}
+                filters={filtrosActivos}
+                onApply={aplicarFiltros}
                 onClear={limpiarFiltros}
                 show={showFiltros}
                 onClose={() => setShowFiltros(false)}
             />
 
-            {/* Modal de Nueva Transacción */}
             {showModal && (
                 <div
                     className="modal d-block"
@@ -263,15 +247,11 @@ export default function App() {
                     tabIndex="-1"
                     role="dialog"
                     aria-modal="true"
-                    aria-labelledby="transaction-modal-title"
                 >
                     <div className="modal-dialog modal-dialog-centered">
                         <div className="modal-content border-0 shadow-lg">
                             <div className="modal-header border-bottom-0 pb-0">
-                                <h5
-                                    id="transaction-modal-title"
-                                    className="modal-title fw-bold"
-                                >
+                                <h5 className="modal-title fw-bold">
                                     Registrar Nuevo Movimiento
                                 </h5>
                                 <button
