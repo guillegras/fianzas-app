@@ -1,5 +1,8 @@
+name: finanzas-dev
+
 services:
   db:
+    container_name: finanzas-dev-db
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
@@ -10,15 +13,11 @@ services:
       - "${DEV_DB_PORT:-5433}:5432"
     volumes:
       - pgdata_dev:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U dev_user -d finanzas_db_dev"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
     networks:
-      - app
+      - dev_net
 
   backend:
+    container_name: finanzas-dev-backend
     build:
       context: ./backend
     restart: unless-stopped
@@ -28,37 +27,42 @@ services:
       DB_NAME: finanzas_db_dev
       DB_PORT: 5432
       DB_HOST: db
-      CORS_ORIGINS: http://localhost:${DEV_FRONTEND_PORT:-5173}
+      PYTHONPATH: /app/src
+      CORS_ORIGINS: http://localhost:${DEV_FRONTEND_PORT:-5173},http://127.0.0.1:${DEV_FRONTEND_PORT:-5173}
     ports:
       - "${DEV_BACKEND_PORT:-8001}:8000"
     volumes:
       - ./backend:/app
     command: uvicorn finanzas_api.main:app --host 0.0.0.0 --port 8000 --reload
     depends_on:
-      db:
-        condition: service_healthy
+      - db
     networks:
-      - app
+      - dev_net
 
   frontend:
+    container_name: finanzas-dev-frontend
     image: node:20-alpine
+    restart: unless-stopped
     working_dir: /app
     environment:
       VITE_API_URL: http://localhost:${DEV_BACKEND_PORT:-8001}
     volumes:
       - ./frontend:/app
-      - /app/node_modules
-    command: sh -c "npm install && npm run dev -- --host"
+      - node_modules_dev:/app/node_modules
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
     ports:
       - "${DEV_FRONTEND_PORT:-5173}:5173"
     depends_on:
       - backend
     networks:
-      - app
+      - dev_net
+    stdin_open: true
+    tty: true
 
 volumes:
   pgdata_dev:
+  node_modules_dev:
 
 networks:
-  app:
+  dev_net:
     driver: bridge

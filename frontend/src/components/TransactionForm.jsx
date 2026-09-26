@@ -1,48 +1,103 @@
-import { useState } from "react";
-import { categoriasPorTipo, tiposMovimiento } from "../utils/constants";
+import { useState, useEffect } from "react";
 import CustomDatePicker from "./CustomDatePicker";
+import { API_URL } from "../services/api";
 
 const getInitialForm = () => ({
     fecha: new Date().toLocaleDateString("en-CA"),
-    tipo: "ingreso",
-    categoria: "Nomina",
+    tipo: "",
+    categoria_id: "",
+    titulo: "",
     monto: "",
     descripcion: "",
 });
 
 export default function TransactionForm({ onGuardar, guardando = false }) {
     const [form, setForm] = useState(getInitialForm);
+    const [tiposMovimiento, setTiposMovimiento] = useState([]);
+    const [categorias, setCategorias] = useState([]);
     const [error, setError] = useState("");
 
-    const handleTipoChange = (e) => {
-        const nuevoTipo = e.target.value;
-        const primerasCategorias = categoriasPorTipo[nuevoTipo] || [];
-        setForm({
-            ...form,
-            tipo: nuevoTipo,
-            categoria: primerasCategorias[0] || "",
-        });
-    };
+    useEffect(() => {
+        const fetchTipos = async () => {
+            try {
+                const res = await fetch(`${API_URL}/transaction-types/`);
+                if (res.ok) {
+                    const data = await res.json();
+                    const activos = data.filter((t) => t.activo);
+                    setTiposMovimiento(activos);
+                    if (activos.length > 0) {
+                        setForm((prev) => ({
+                            ...prev,
+                            tipo: activos[0].id,
+                        }));
+                    }
+                }
+            } catch (err) {
+                setError("Error cargando tipos de movimiento");
+            }
+        };
+        fetchTipos();
+    }, [API_URL]);
+
+    useEffect(() => {
+        if (!form.tipo) return;
+
+        const fetchCategorias = async () => {
+            try {
+                const res = await fetch(
+                    `${API_URL}/transaction-categories/${form.tipo}`,
+                );
+                if (res.ok) {
+                    const data = await res.json();
+                    const activas = data.filter((c) => c.activa);
+                    setCategorias(activas);
+                    setForm((prev) => ({
+                        ...prev,
+                        categoria_id: activas.length > 0 ? activas[0].id : "",
+                    }));
+                }
+            } catch (err) {
+                setError("Error cargando categorías");
+            }
+        };
+        fetchCategorias();
+    }, [form.tipo, API_URL]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError("");
+
+        if (!form.categoria_id) {
+            setError("Debes seleccionar una categoría vinculada al tipo.");
+            return;
+        }
+
         try {
+            const categoriaSeleccionada = categorias.find(
+                (c) => c.id === parseInt(form.categoria_id),
+            );
+
             await onGuardar({
-                titulo: form.categoria,
+                titulo:
+                    form.titulo.trim() ||
+                    categoriaSeleccionada?.nombre ||
+                    "Movimiento",
                 monto: parseFloat(form.monto),
                 tipo: form.tipo,
-                categoria: form.categoria,
+                categoria_id: parseInt(form.categoria_id),
                 fecha: form.fecha,
                 descripcion: form.descripcion.trim(),
             });
-            setForm(getInitialForm());
+
+            setForm((prev) => ({
+                ...getInitialForm(),
+                tipo: tiposMovimiento[0]?.id || "",
+                categoria_id: categorias[0]?.id || "",
+            }));
         } catch {
             setError("Revisa la conexión e inténtalo de nuevo.");
         }
     };
-
-    const categoriasDisponibles = categoriasPorTipo[form.tipo] || [];
 
     return (
         <form onSubmit={handleSubmit} aria-busy={guardando}>
@@ -51,11 +106,9 @@ export default function TransactionForm({ onGuardar, guardando = false }) {
                     {error}
                 </div>
             )}
+
             <div className="mb-3">
-                <label
-                    htmlFor="transaction-date"
-                    className="form-label text-muted small uppercase fw-semibold"
-                >
+                <label className="form-label text-muted small uppercase fw-semibold">
                     Fecha
                 </label>
                 <CustomDatePicker
@@ -67,43 +120,71 @@ export default function TransactionForm({ onGuardar, guardando = false }) {
                 />
             </div>
 
-            <div className="mb-3">
-                <label htmlFor="transaction-type" className="form-label">
-                    Tipo
-                </label>
-                <select
-                    className="form-select bg-dark text-light border-secondary border-opacity-50"
-                    id="transaction-type"
-                    value={form.tipo}
-                    onChange={handleTipoChange}
-                >
-                    {tiposMovimiento.map((tipo) => (
-                        <option key={tipo.value} value={tipo.value}>
-                            {tipo.label}
-                        </option>
-                    ))}
-                </select>
+            <div className="row mb-3">
+                <div className="col-md-6">
+                    <label htmlFor="transaction-type" className="form-label">
+                        Tipo
+                    </label>
+                    <select
+                        className="form-select bg-dark text-light border-secondary border-opacity-50"
+                        id="transaction-type"
+                        value={form.tipo}
+                        onChange={(e) =>
+                            setForm({ ...form, tipo: e.target.value })
+                        }
+                        required
+                    >
+                        {tiposMovimiento.map((tipo) => (
+                            <option key={tipo.id} value={tipo.id}>
+                                {tipo.etiqueta}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+
+                <div className="col-md-6">
+                    <label
+                        htmlFor="transaction-category"
+                        className="form-label"
+                    >
+                        Categoría
+                    </label>
+                    <select
+                        className="form-select bg-dark text-light border-secondary border-opacity-50"
+                        id="transaction-category"
+                        value={form.categoria_id}
+                        onChange={(e) =>
+                            setForm({ ...form, categoria_id: e.target.value })
+                        }
+                        required
+                    >
+                        {categorias.length === 0 && (
+                            <option value="">Sin categorías...</option>
+                        )}
+                        {categorias.map((cat) => (
+                            <option key={cat.id} value={cat.id}>
+                                {cat.nombre}
+                            </option>
+                        ))}
+                    </select>
+                </div>
             </div>
 
             <div className="mb-3">
-                <label htmlFor="transaction-category" className="form-label">
-                    Categoría
+                <label htmlFor="transaction-title" className="form-label">
+                    Título Personalizado{" "}
+                    <span className="text-muted">(Opcional)</span>
                 </label>
-                <select
-                    id="transaction-category"
-                    className="form-select bg-dark text-light border-secondary border-opacity-50"
-                    value={form.categoria}
+                <input
+                    id="transaction-title"
+                    type="text"
+                    className="form-control bg-dark text-light border-secondary border-opacity-50"
+                    placeholder="Dejar vacío para usar nombre de categoría..."
+                    value={form.titulo}
                     onChange={(e) =>
-                        setForm({ ...form, categoria: e.target.value })
+                        setForm({ ...form, titulo: e.target.value })
                     }
-                    required
-                >
-                    {categoriasDisponibles.map((cat, i) => (
-                        <option key={i} value={cat}>
-                            {cat}
-                        </option>
-                    ))}
-                </select>
+                />
             </div>
 
             <div className="mb-3">
@@ -151,7 +232,7 @@ export default function TransactionForm({ onGuardar, guardando = false }) {
             <button
                 type="submit"
                 className="btn btn-primary w-100"
-                disabled={guardando}
+                disabled={guardando || categorias.length === 0}
             >
                 {guardando ? "Guardando..." : "Guardar"}
             </button>

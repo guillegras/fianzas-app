@@ -1,7 +1,7 @@
-import { useState } from "react";
-import ConfirmModal from "./ConfirmModal";
-import { configTipos } from "../utils/constants";
+import { useEffect, useState } from "react";
 import { formatCurrency } from "../utils/transactions";
+import ConfirmModal from "./ConfirmModal";
+import { API_URL } from "../services/api";
 
 export default function TransactionList({
     transacciones = [],
@@ -12,6 +12,33 @@ export default function TransactionList({
     onCambiarPagina,
 }) {
     const [idAEliminar, setIdAEliminar] = useState(null);
+    const [tiposMap, setTiposMap] = useState({});
+
+    useEffect(() => {
+        const fetchTipos = async () => {
+            try {
+                const res = await fetch(`${API_URL}/transaction-types/`);
+                if (res.ok) {
+                    const data = await res.json();
+                    const mapa = {};
+                    data.forEach((t) => {
+                        mapa[t.id] = {
+                            label: t.etiqueta,
+                            color: t.color,
+                            es_ingreso: t.es_ingreso,
+                        };
+                    });
+                    setTiposMap(mapa);
+                }
+            } catch (err) {
+                console.error(
+                    "Error cargando colores de tipos en el historial",
+                    err,
+                );
+            }
+        };
+        fetchTipos();
+    }, [API_URL]);
 
     const confirmarEliminacion = (id) => setIdAEliminar(id);
     const ejecutarEliminar = () => {
@@ -49,19 +76,18 @@ export default function TransactionList({
                     </thead>
                     <tbody>
                         {transacciones.map((t) => {
-                            const tipoSeguro = t.tipo || "gasto_fijo";
-                            const visual = configTipos[tipoSeguro] || {
-                                label: tipoSeguro,
+                            const visual = tiposMap[t.tipo] || {
+                                label: t.tipo,
                                 color: "#6c757d",
+                                es_ingreso: false,
                             };
                             const montoSeguro = Number(t.monto) || 0;
-                            const esPositivo = tipoSeguro === "ingreso";
 
                             return (
                                 <tr
                                     key={
                                         t.id ??
-                                        `${t.fecha}-${t.tipo}-${t.monto}-${t.categoria}`
+                                        `${t.fecha}-${t.tipo}-${t.monto}-${t.categoria_id}`
                                     }
                                 >
                                     <td className="text-muted">
@@ -78,9 +104,14 @@ export default function TransactionList({
                                         </span>
                                     </td>
                                     <td className="fw-medium text-light">
-                                        {t.categoria ||
-                                            t.titulo ||
-                                            "Sin título"}
+                                        <div className="d-flex flex-column">
+                                            <span>
+                                                {t.titulo || "Sin título"}
+                                            </span>
+                                            <span className="text-muted small fw-normal">
+                                                {t.categoria}
+                                            </span>
+                                        </div>
                                     </td>
                                     <td
                                         className="text-muted text-truncate"
@@ -89,7 +120,7 @@ export default function TransactionList({
                                         {t.descripcion || "-"}
                                     </td>
                                     <td
-                                        className={`font-mono fw-bold text-end ${esPositivo ? "text-success" : "text-danger"}`}
+                                        className={`font-mono fw-bold text-end ${visual.es_ingreso ? "text-success" : "text-danger"}`}
                                     >
                                         {formatCurrency(montoSeguro)}
                                     </td>
@@ -99,7 +130,7 @@ export default function TransactionList({
                                             onClick={() =>
                                                 confirmarEliminacion(t.id)
                                             }
-                                            aria-label={`Eliminar ${t.categoria || t.titulo || "movimiento"}`}
+                                            aria-label={`Eliminar ${t.titulo || "movimiento"}`}
                                             title="Eliminar movimiento"
                                             disabled={eliminando}
                                         >

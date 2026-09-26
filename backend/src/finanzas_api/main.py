@@ -7,21 +7,21 @@ from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from .api.v1 import transactions
-from .core.database import SessionLocal, engine
-from .core.migrations import initialize_schema
+from .api.v1 import transaction_categories, transaction_type, transactions
+from .core.database import SessionLocal
+from .core.init_db import init_database
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    initialize_schema(engine)
+    init_database()
     app.state.database_initialized = True
     yield
 
 
 app = FastAPI(
     title="API Finanzas Personales",
-    version="0.1.0",
+    version="0.2.0",
     lifespan=lifespan,
 )
 
@@ -36,6 +36,8 @@ app.add_middleware(
 )
 
 app.include_router(transactions.router)
+app.include_router(transaction_type.router)
+app.include_router(transaction_categories.router)
 
 
 def get_db():
@@ -52,7 +54,7 @@ def leer_raiz():
 
 
 @app.get("/probar-conexion")
-def probar_conexion(db: Session = Depends(get_db)):  # noqa: B008
+def probar_conexion(db: Session = Depends(get_db)):
     try:
         resultado = db.execute(text("SELECT 1")).scalar()
         return {"estado": "Conexión exitosa", "resultado_db": resultado}
@@ -69,7 +71,7 @@ def health():
 
 
 @app.get("/ready")
-def readiness(db: Session = Depends(get_db)):  # noqa: B008
+def readiness(db: Session = Depends(get_db)):
     try:
         db.execute(text("SELECT 1"))
         return {"status": "ready"}

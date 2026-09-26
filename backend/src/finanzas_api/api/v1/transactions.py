@@ -23,7 +23,7 @@ def get_db():
 @router.post("/", response_model=TransaccionResponse)
 def crear_transaccion(
     transaccion: TransaccionCreate,
-    db: Session = Depends(get_db),  # noqa: B008
+    db: Session = Depends(get_db),
 ):
     try:
         return transactions.create_transaccion(db=db, transaccion=transaccion)
@@ -40,14 +40,14 @@ def listar_transacciones(
     limit: int = Query(default=100, ge=1),
     offset: int = Query(default=0, ge=0),
     tipo: str | None = None,
-    categoria: str | None = None,
+    categoria_id: int | None = None,
     montoMin: float | None = None,
     montoMax: float | None = None,
     mes: str | None = None,
     anio: str | None = None,
     fechaInicio: str | None = None,
     fechaFin: str | None = None,
-    db: Session = Depends(get_db),  # noqa: B008
+    db: Session = Depends(get_db),
 ):
     try:
         return transactions.get_transacciones(
@@ -55,7 +55,7 @@ def listar_transacciones(
             limit=limit,
             offset=offset,
             tipo=tipo,
-            categoria=categoria,
+            categoria_id=categoria_id,
             montoMin=montoMin,
             montoMax=montoMax,
             mes=mes,
@@ -74,7 +74,7 @@ def listar_transacciones(
 def obtener_resumen(
     mes: str | None = None,
     anio: str | None = None,
-    db: Session = Depends(get_db),  # noqa: B008
+    db: Session = Depends(get_db),
 ):
     try:
         return dashboard.build_resumen(db=db, mes=mes, anio=anio)
@@ -88,7 +88,7 @@ def obtener_resumen(
 @router.delete("/{transaccion_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_transaccion(
     transaccion_id: int,
-    db: Session = Depends(get_db),  # noqa: B008
+    db: Session = Depends(get_db),
 ):
     try:
         exito = transactions.delete_transaccion(db=db, transaccion_id=transaccion_id)

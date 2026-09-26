@@ -3,6 +3,7 @@ import math
 from sqlalchemy.orm import Session
 
 from ..models.transaction import Transaccion
+from ..models.transaction_category import CategoriaMovimiento
 from ..schemas.transaction import TransaccionCreate
 from ..utils.date_helpers import build_filter_dates
 
@@ -12,7 +13,7 @@ def get_transacciones(
     limit: int,
     offset: int,
     tipo: str | None = None,
-    categoria: str | None = None,
+    categoria_id: int | None = None,
     montoMin: float | None = None,
     montoMax: float | None = None,
     mes: str | None = None,
@@ -20,12 +21,14 @@ def get_transacciones(
     fechaInicio: str | None = None,
     fechaFin: str | None = None,
 ):
-    query = db.query(Transaccion)
+    query = db.query(
+        Transaccion, CategoriaMovimiento.nombre.label("categoria_nombre")
+    ).outerjoin(CategoriaMovimiento, Transaccion.categoria_id == CategoriaMovimiento.id)
 
     if tipo:
         query = query.filter(Transaccion.tipo == tipo)
-    if categoria:
-        query = query.filter(Transaccion.categoria == categoria)
+    if categoria_id is not None:
+        query = query.filter(Transaccion.categoria_id == categoria_id)
     if montoMin is not None:
         query = query.filter(Transaccion.monto >= montoMin)
     if montoMax is not None:
@@ -43,15 +46,23 @@ def get_transacciones(
 
     total_items = query.count()
     total_pages = max(1, math.ceil(total_items / limit))
-    transacciones = (
+    transacciones_con_cat = (
         query.order_by(Transaccion.fecha.desc(), Transaccion.id.desc())
         .offset(offset)
         .limit(limit)
         .all()
     )
 
+    items = []
+    for transaccion, categoria_nombre in transacciones_con_cat:
+        t_dict = transaccion.__dict__.copy()
+        if "_sa_instance_state" in t_dict:
+            del t_dict["_sa_instance_state"]
+        t_dict["categoria"] = categoria_nombre or "Sin categoría"
+        items.append(t_dict)
+
     return {
-        "items": [t.__dict__ for t in transacciones],
+        "items": items,
         "total_pages": total_pages,
     }
 

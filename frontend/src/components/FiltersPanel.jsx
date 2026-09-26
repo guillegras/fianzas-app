@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import CustomDatePicker from "./CustomDatePicker";
-import { categoriasPorTipo, tiposMovimiento } from "../utils/constants";
+import { API_URL } from "../services/api";
 
 const meses = [
     "Enero",
@@ -25,14 +25,50 @@ export default function FiltersPanel({
     onClose,
 }) {
     const [draftFilters, setDraftFilters] = useState(filters);
+    const [tiposMovimiento, setTiposMovimiento] = useState([]);
+    const [categoriasDisponibles, setCategoriasDisponibles] = useState([]);
 
     useEffect(() => {
         if (show) setDraftFilters(filters);
     }, [show, filters]);
 
-    const categoriasDisponibles = draftFilters.tipo
-        ? categoriasPorTipo[draftFilters.tipo] || []
-        : [];
+    useEffect(() => {
+        const fetchTipos = async () => {
+            try {
+                const res = await fetch(`${API_URL}/transaction-types/`);
+                if (res.ok) {
+                    const data = await res.json();
+                    setTiposMovimiento(data.filter((t) => t.activo));
+                }
+            } catch (err) {
+                console.error("Error cargando tipos para el filtro", err);
+            }
+        };
+        fetchTipos();
+    }, [API_URL]);
+
+    useEffect(() => {
+        if (!draftFilters.tipo) {
+            setCategoriasDisponibles([]);
+            return;
+        }
+
+        const fetchCategorias = async () => {
+            try {
+                const res = await fetch(
+                    `${API_URL}/transaction-categories/${draftFilters.tipo}`,
+                );
+                if (res.ok) {
+                    const data = await res.json();
+                    setCategoriasDisponibles(data.filter((c) => c.activa));
+                }
+            } catch (err) {
+                console.error("Error cargando categorías para el filtro", err);
+            }
+        };
+        fetchCategorias();
+    }, [draftFilters.tipo, API_URL]);
+
     const rangosInvalidos =
         (draftFilters.montoMin !== "" &&
             draftFilters.montoMax !== "" &&
@@ -45,7 +81,7 @@ export default function FiltersPanel({
         const val = event.target.value;
         setDraftFilters((prev) => {
             const updated = { ...prev, [name]: val };
-            if (name === "tipo") updated.categoria = "";
+            if (name === "tipo") updated.categoria_id = "";
             return updated;
         });
     };
@@ -56,20 +92,20 @@ export default function FiltersPanel({
     return (
         <>
             <div
-                className={`offcanvas offcanvas-end ${show ? "show" : ""}`}
+                className={`offcanvas offcanvas-end bg-dark text-light border-secondary ${show ? "show" : ""}`}
                 tabIndex="-1"
                 role="dialog"
                 aria-modal="true"
                 aria-hidden={!show}
                 style={{ visibility: show ? "visible" : "hidden" }}
             >
-                <div className="offcanvas-header border-bottom">
+                <div className="offcanvas-header border-bottom border-secondary">
                     <h5 className="offcanvas-title fw-bold">
                         Filtros de Búsqueda
                     </h5>
                     <button
                         type="button"
-                        className="btn-close"
+                        className="btn-close btn-close-white"
                         onClick={onClose}
                         aria-label="Cerrar filtros"
                     />
@@ -81,14 +117,14 @@ export default function FiltersPanel({
                                 Tipo de movimiento
                             </label>
                             <select
-                                className="form-select"
+                                className="form-select bg-dark text-light border-secondary"
                                 value={draftFilters.tipo}
                                 onChange={update("tipo")}
                             >
                                 <option value="">Todos</option>
                                 {tiposMovimiento.map((tipo) => (
-                                    <option key={tipo.value} value={tipo.value}>
-                                        {tipo.label}
+                                    <option key={tipo.id} value={tipo.id}>
+                                        {tipo.etiqueta}
                                     </option>
                                 ))}
                             </select>
@@ -98,15 +134,15 @@ export default function FiltersPanel({
                                 Categoría
                             </label>
                             <select
-                                className="form-select"
-                                value={draftFilters.categoria}
-                                onChange={update("categoria")}
+                                className="form-select bg-dark text-light border-secondary"
+                                value={draftFilters.categoria_id}
+                                onChange={update("categoria_id")}
                                 disabled={!draftFilters.tipo}
                             >
                                 <option value="">Todas las categorías</option>
-                                {categoriasDisponibles.map((categoria) => (
-                                    <option key={categoria} value={categoria}>
-                                        {categoria}
+                                {categoriasDisponibles.map((cat) => (
+                                    <option key={cat.id} value={cat.id}>
+                                        {cat.nombre}
                                     </option>
                                 ))}
                             </select>
@@ -123,15 +159,17 @@ export default function FiltersPanel({
                             <div className="input-group">
                                 <input
                                     type="number"
-                                    className="form-control"
+                                    className="form-control bg-dark text-light border-secondary"
                                     placeholder="Mínimo"
                                     value={draftFilters.montoMin}
                                     onChange={update("montoMin")}
                                 />
-                                <span className="input-group-text">-</span>
+                                <span className="input-group-text bg-dark text-light border-secondary">
+                                    -
+                                </span>
                                 <input
                                     type="number"
-                                    className="form-control"
+                                    className="form-control bg-dark text-light border-secondary"
                                     placeholder="Máximo"
                                     value={draftFilters.montoMax}
                                     onChange={update("montoMax")}
@@ -145,7 +183,7 @@ export default function FiltersPanel({
                             <div className="row g-2">
                                 <div className="col-7">
                                     <select
-                                        className="form-select form-select-sm"
+                                        className="form-select form-select-sm bg-dark text-light border-secondary"
                                         value={draftFilters.mes}
                                         onChange={update("mes")}
                                     >
@@ -168,7 +206,7 @@ export default function FiltersPanel({
                                         inputMode="numeric"
                                         pattern="[0-9]*"
                                         maxLength="4"
-                                        className="form-control form-control-sm"
+                                        className="form-control form-control-sm bg-dark text-light border-secondary"
                                         placeholder="Año (Ej: 2026)"
                                         value={draftFilters.anio}
                                         onChange={update("anio")}

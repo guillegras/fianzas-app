@@ -10,7 +10,6 @@ import {
     Tooltip,
     ResponsiveContainer,
 } from "recharts";
-import { configTipos } from "../utils/constants";
 import { formatCurrency } from "../utils/transactions";
 
 export default function DashboardCharts({ graficos }) {
@@ -27,7 +26,7 @@ export default function DashboardCharts({ graficos }) {
             <div className="col-md-6">
                 <div className="card bg-dark border-0 shadow-sm p-4 h-100">
                     <h5 className="mb-4 text-center text-light">
-                        Ingresos vs Salidas
+                        Ingresos vs Gastos
                     </h5>
                     <div style={{ height: 300 }}>
                         <ResponsiveContainer width="100%" height="100%">
@@ -79,9 +78,7 @@ export default function DashboardCharts({ graficos }) {
                             Detalle de categorías
                         </p>
                     ) : (
-                        <p className="text-muted text-center small mb-4">
-                            Gastos Fijos, Variables, Inversiones y Deudas
-                        </p>
+                        <div className="mb-4" />
                     )}
 
                     <div
@@ -132,14 +129,9 @@ export default function DashboardCharts({ graficos }) {
                                                 color: "#ffffff",
                                             }}
                                             itemStyle={{ color: "#ffffff" }}
-                                            labelStyle={{
-                                                color: "#9ca3af",
-                                                fontWeight: "bold",
-                                                marginBottom: "4px",
-                                            }}
-                                            formatter={(value) => [
+                                            formatter={(value, name, item) => [
                                                 formatCurrency(value),
-                                                "Monto",
+                                                item.payload.name,
                                             ]}
                                         />
                                     </PieChart>
@@ -161,12 +153,9 @@ export default function DashboardCharts({ graficos }) {
                             >
                                 <h6
                                     className="border-bottom border-secondary pb-2 mb-3 fw-bold"
-                                    style={{
-                                        color: configTipos[tipoSeleccionado]
-                                            ?.color,
-                                    }}
+                                    style={{ color: "#ffffff" }}
                                 >
-                                    {configTipos[tipoSeleccionado]?.label}
+                                    Detalle
                                 </h6>
                                 <ul className="list-unstyled m-0">
                                     {dataDesglose.map((d) => (

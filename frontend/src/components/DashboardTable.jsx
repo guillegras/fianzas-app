@@ -1,7 +1,36 @@
-import { configTipos } from "../utils/constants";
+import { useState, useEffect } from "react";
 import { formatCurrency } from "../utils/transactions";
+import { API_URL } from "../services/api";
 
 export default function DashboardTable({ tablaCategorias }) {
+    const [tiposMap, setTiposMap] = useState({});
+
+    useEffect(() => {
+        const fetchTipos = async () => {
+            try {
+                const res = await fetch(`${API_URL}/transaction-types/`);
+                if (res.ok) {
+                    const data = await res.json();
+                    const mapa = {};
+                    data.forEach((t) => {
+                        mapa[t.id] = {
+                            label: t.etiqueta,
+                            color: t.color,
+                            es_ingreso: t.es_ingreso,
+                        };
+                    });
+                    setTiposMap(mapa);
+                }
+            } catch (err) {
+                console.error(
+                    "Error cargando colores de tipos en la tabla",
+                    err,
+                );
+            }
+        };
+        fetchTipos();
+    }, [API_URL]);
+
     const renderDiferencia = (item) => {
         if (item.diferencia === 0)
             return (
@@ -10,15 +39,16 @@ export default function DashboardTable({ tablaCategorias }) {
                 </span>
             );
 
-        const isIngreso = item.tipo === "ingreso";
+        const tipoInfo = tiposMap[item.tipo] || { es_ingreso: false };
+        const isIngreso = tipoInfo.es_ingreso;
         const impacto = isIngreso ? item.diferencia : -item.diferencia;
         const colorClass = impacto > 0 ? "text-success" : "text-danger";
-        const signo = impacto < 0 ? "-" : "";
+        const signo = impacto > 0 ? "+" : "";
 
         return (
             <span className={`${colorClass} fw-bold font-mono`}>
                 {signo}
-                {formatCurrency(Math.abs(impacto))}
+                {formatCurrency(impacto)}
             </span>
         );
     };
@@ -51,36 +81,42 @@ export default function DashboardTable({ tablaCategorias }) {
                                 </tr>
                             </thead>
                             <tbody>
-                                {tablaCategorias.map((item) => (
-                                    <tr key={`${item.tipo}-${item.categoria}`}>
-                                        <td className="fw-medium text-light">
-                                            {item.categoria}
-                                        </td>
-                                        <td>
-                                            <span
-                                                className="badge text-white"
-                                                style={{
-                                                    backgroundColor:
-                                                        configTipos[item.tipo]
-                                                            ?.color ||
-                                                        "#6c757d",
-                                                }}
-                                            >
-                                                {configTipos[item.tipo]
-                                                    ?.label || item.tipo}
-                                            </span>
-                                        </td>
-                                        <td className="text-end text-muted font-mono">
-                                            {formatCurrency(item.anterior)}
-                                        </td>
-                                        <td className="text-end fw-bold font-mono text-light">
-                                            {formatCurrency(item.actual)}
-                                        </td>
-                                        <td className="text-end">
-                                            {renderDiferencia(item)}
-                                        </td>
-                                    </tr>
-                                ))}
+                                {tablaCategorias.map((item) => {
+                                    const tipoVisual = tiposMap[item.tipo] || {
+                                        label: item.tipo,
+                                        color: "#6c757d",
+                                    };
+
+                                    return (
+                                        <tr
+                                            key={`${item.tipo}-${item.categoria}`}
+                                        >
+                                            <td className="fw-medium text-light">
+                                                {item.categoria}
+                                            </td>
+                                            <td>
+                                                <span
+                                                    className="badge text-white"
+                                                    style={{
+                                                        backgroundColor:
+                                                            tipoVisual.color,
+                                                    }}
+                                                >
+                                                    {tipoVisual.label}
+                                                </span>
+                                            </td>
+                                            <td className="text-end text-muted font-mono">
+                                                {formatCurrency(item.anterior)}
+                                            </td>
+                                            <td className="text-end fw-bold font-mono text-light">
+                                                {formatCurrency(item.actual)}
+                                            </td>
+                                            <td className="text-end">
+                                                {renderDiferencia(item)}
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
                                 {tablaCategorias.length === 0 && (
                                     <tr>
                                         <td

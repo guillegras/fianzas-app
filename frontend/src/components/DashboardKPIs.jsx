@@ -1,4 +1,3 @@
-import { configTipos } from "../utils/constants";
 import { formatCurrency } from "../utils/transactions";
 
 export default function DashboardKPIs({ kpis }) {
@@ -6,12 +5,13 @@ export default function DashboardKPIs({ kpis }) {
 
     const {
         totalIngresos,
-        totalGastosFijos,
-        totalGastosVariables,
-        totalInversiones,
         gastosTotales,
         balanceNeto,
+        detallesTipos = [],
     } = kpis;
+
+    const ingresosGenerales = detallesTipos.filter((t) => t.es_ingreso);
+    const gastosGenerales = detallesTipos.filter((t) => !t.es_ingreso);
 
     return (
         <div className="card bg-dark border-0 shadow-sm p-4 mb-4">
@@ -20,16 +20,13 @@ export default function DashboardKPIs({ kpis }) {
                     <span className="text-muted small text-uppercase fw-semibold d-block mb-1">
                         Ingresos
                     </span>
-                    <h4
-                        className="font-mono fw-bold mb-0"
-                        style={{ color: configTipos.ingreso?.color }}
-                    >
+                    <h4 className="font-mono fw-bold mb-0 text-success">
                         {formatCurrency(totalIngresos)}
                     </h4>
                 </div>
                 <div className="col-md col-sm-6 border-end border-secondary border-opacity-25">
                     <span className="text-muted small text-uppercase fw-semibold d-block mb-1">
-                        Salidas
+                        Gastos
                     </span>
                     <h4 className="font-mono fw-bold text-danger mb-0">
                         {formatCurrency(gastosTotales)}
@@ -45,39 +42,23 @@ export default function DashboardKPIs({ kpis }) {
                         {formatCurrency(balanceNeto)}
                     </h4>
                 </div>
-                <div className="col-md col-sm-6 border-end border-secondary border-opacity-25">
-                    <span className="text-muted small text-uppercase fw-semibold d-block mb-1">
-                        Gastos Fijos
-                    </span>
-                    <h4
-                        className="font-mono fw-bold mb-0"
-                        style={{ color: configTipos.gasto_fijo?.color }}
+
+                {gastosGenerales.map((tipo) => (
+                    <div
+                        key={tipo.id}
+                        className="col-md col-sm-6 border-end border-secondary border-opacity-25"
                     >
-                        {formatCurrency(totalGastosFijos)}
-                    </h4>
-                </div>
-                <div className="col-md col-sm-6 border-end border-secondary border-opacity-25">
-                    <span className="text-muted small text-uppercase fw-semibold d-block mb-1">
-                        Gastos Variables
-                    </span>
-                    <h4
-                        className="font-mono fw-bold mb-0"
-                        style={{ color: configTipos.gasto_variable?.color }}
-                    >
-                        {formatCurrency(totalGastosVariables)}
-                    </h4>
-                </div>
-                <div className="col-md col-sm-6">
-                    <span className="text-muted small text-uppercase fw-semibold d-block mb-1">
-                        Inversiones
-                    </span>
-                    <h4
-                        className="font-mono fw-bold mb-0"
-                        style={{ color: configTipos.inversion?.color }}
-                    >
-                        {formatCurrency(totalInversiones)}
-                    </h4>
-                </div>
+                        <span className="text-muted small text-uppercase fw-semibold d-block mb-1 text-truncate">
+                            {tipo.label}
+                        </span>
+                        <h4
+                            className="font-mono fw-bold mb-0"
+                            style={{ color: tipo.color }}
+                        >
+                            {formatCurrency(tipo.total)}
+                        </h4>
+                    </div>
+                ))}
             </div>
         </div>
     );

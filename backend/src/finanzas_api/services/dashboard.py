@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 
+from ..models.transaction_type import TipoMovimiento
 from ..repositories.metrics import fetch_categories, fetch_kpis
 from ..utils.date_helpers import get_period_ranges
 
@@ -11,77 +12,84 @@ def build_resumen(db: Session, mes: str | None = None, anio: str | None = None):
     cat_actual = fetch_categories(db, curr_start, curr_end)
     cat_previo = fetch_categories(db, prev_start, prev_end)
 
+    tipos_db = db.query(TipoMovimiento).filter(TipoMovimiento.activo == True).all()
+    tipos_map = {
+        t.id: {"name": t.etiqueta, "color": t.color, "es_ingreso": t.es_ingreso}
+        for t in tipos_db
+    }
+
     mapa_categorias = {}
     desgloses = {}
 
-    for (cat, tipo), total in cat_actual.items():
-        mapa_categorias[(cat, tipo)] = {"actual": total, "anterior": 0.0}
+    for (cat_nombre, tipo), total in cat_actual.items():
+        mapa_categorias[(cat_nombre, tipo)] = {"actual": total, "anterior": 0.0}
         if tipo not in desgloses:
             desgloses[tipo] = []
-        desgloses[tipo].append({"name": cat, "value": total})
+        desgloses[tipo].append({"name": cat_nombre, "value": total})
 
-    for (cat, tipo), total in cat_previo.items():
-        if (cat, tipo) not in mapa_categorias:
-            mapa_categorias[(cat, tipo)] = {"actual": 0.0, "anterior": total}
+    for (cat_nombre, tipo), total in cat_previo.items():
+        if (cat_nombre, tipo) not in mapa_categorias:
+            mapa_categorias[(cat_nombre, tipo)] = {"actual": 0.0, "anterior": total}
         else:
-            mapa_categorias[(cat, tipo)]["anterior"] = total
+            mapa_categorias[(cat_nombre, tipo)]["anterior"] = total
 
     tabla_categorias = [
         {
-            "categoria": cat,
+            "categoria": cat_nombre,
             "tipo": tipo,
             "actual": data["actual"],
             "anterior": data["anterior"],
             "diferencia": data["actual"] - data["anterior"],
         }
-        for (cat, tipo), data in mapa_categorias.items()
+        for (cat_nombre, tipo), data in mapa_categorias.items()
     ]
 
     tabla_categorias.sort(key=lambda x: x["actual"], reverse=True)
     for tipo in desgloses:
         desgloses[tipo].sort(key=lambda x: x["value"], reverse=True)
 
+    por_tipo = kpis.get("porTipo", {})
+
+    kpis_desglose = [
+        {
+            "id": t_id,
+            "label": info["name"],
+            "color": info["color"],
+            "total": por_tipo.get(t_id, 0.0),
+            "es_ingreso": info["es_ingreso"],
+        }
+        for t_id, info in tipos_map.items()
+    ]
+
     data_pastel = [
         {
-            "name": "Gasto Fijo",
-            "tipoId": "gasto_fijo",
-            "value": kpis["totalGastosFijos"],
-            "color": "#fd7e14",
-        },
-        {
-            "name": "Gasto Variable",
-            "tipoId": "gasto_variable",
-            "value": kpis["totalGastosVariables"],
-            "color": "#dc3545",
-        },
-        {
-            "name": "Inversión",
-            "tipoId": "inversion",
-            "value": kpis["totalInversiones"],
-            "color": "#0d6efd",
-        },
-        {
-            "name": "Deuda",
-            "tipoId": "deuda",
-            "value": kpis["totalGastosVariables"],
-            "color": "#6f42c1",
-        },
+            "name": item["label"],
+            "tipoId": item["id"],
+            "value": item["total"],
+            "color": item["color"],
+        }
+        for item in kpis_desglose
+        if not item["es_ingreso"] and item["total"] > 0
     ]
-    data_pastel = [d for d in data_pastel if d["value"] > 0]
 
     return {
-        "kpis": kpis,
+        "kpis": {
+            "totalIngresos": kpis["totalIngresos"],
+            "gastosTotales": kpis["gastosTotales"],
+            "balanceNeto": kpis["balanceNeto"],
+            "detallesTipos": kpis_desglose,
+        },
         "graficos": {
             "dataBarras": [
                 {
                     "nombre": "Ingresos",
                     "cantidad": kpis["totalIngresos"],
-                    "fill": "#28a745",
+                    "fill": "#10B981",
                 },
                 {
-                    "nombre": "Salidas",
+                    "nombre": "Gastos",
                     "cantidad": kpis["gastosTotales"],
-                    "fill": "#dc3545",
+                    "fill": "#EF4444",
                 },
             ],
             "dataPastel": data_pastel,
