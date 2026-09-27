@@ -2,7 +2,7 @@
 
 Aplicación web de gestión de finanzas personales para uso local. La aplicación y su base de datos se ejecutan en Docker y solo son accesibles desde el propio equipo, garantizando privacidad total sobre tus datos financieros.
 
-**Versión actual: `0.2.0`**
+**Versión actual: `0.3.0`**
 
 ---
 

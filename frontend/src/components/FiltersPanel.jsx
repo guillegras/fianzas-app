@@ -45,7 +45,7 @@ export default function FiltersPanel({
             }
         };
         fetchTipos();
-    }, [API_URL]);
+    }, []);
 
     useEffect(() => {
         if (!draftFilters.tipo) {
@@ -67,7 +67,7 @@ export default function FiltersPanel({
             }
         };
         fetchCategorias();
-    }, [draftFilters.tipo, API_URL]);
+    }, [draftFilters.tipo]);
 
     const rangosInvalidos =
         (draftFilters.montoMin !== "" &&
@@ -92,17 +92,46 @@ export default function FiltersPanel({
     return (
         <>
             <div
-                className={`offcanvas offcanvas-end bg-dark text-light border-secondary ${show ? "show" : ""}`}
+                className={`offcanvas offcanvas-end text-light border-start ${show ? "show" : ""}`}
                 tabIndex="-1"
                 role="dialog"
                 aria-modal="true"
                 aria-hidden={!show}
-                style={{ visibility: show ? "visible" : "hidden" }}
+                style={{
+                    visibility: show ? "visible" : "hidden",
+                    backgroundColor: "#161b22",
+                    borderColor: "rgba(255, 255, 255, 0.1)",
+                    width: "min(380px, 100vw)",
+                    boxShadow: "-8px 0 32px rgba(0, 0, 0, 0.5)",
+                }}
             >
-                <div className="offcanvas-header border-bottom border-secondary">
-                    <h5 className="offcanvas-title fw-bold">
-                        Filtros de Búsqueda
-                    </h5>
+                {/* Header */}
+                <div className="offcanvas-header border-bottom border-white border-opacity-10 px-4 py-3">
+                    <div className="d-flex align-items-center gap-2">
+                        <div
+                            className="rounded-circle d-flex align-items-center justify-content-center"
+                            style={{
+                                width: "32px",
+                                height: "32px",
+                                backgroundColor: "rgba(59, 130, 246, 0.15)",
+                                color: "#3b82f6",
+                            }}
+                        >
+                            <svg
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2.5"
+                            >
+                                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+                            </svg>
+                        </div>
+                        <h5 className="offcanvas-title fw-bold fs-6 m-0 text-light">
+                            Filtros de Búsqueda
+                        </h5>
+                    </div>
                     <button
                         type="button"
                         className="btn-close btn-close-white"
@@ -110,152 +139,184 @@ export default function FiltersPanel({
                         aria-label="Cerrar filtros"
                     />
                 </div>
-                <div className="offcanvas-body d-flex flex-column">
-                    <div className="flex-grow-1">
-                        <div className="mb-3">
-                            <label className="form-label text-muted small">
-                                Tipo de movimiento
-                            </label>
-                            <select
-                                className="form-select bg-dark text-light border-secondary"
-                                value={draftFilters.tipo}
-                                onChange={update("tipo")}
-                            >
-                                <option value="">Todos</option>
-                                {tiposMovimiento.map((tipo) => (
-                                    <option key={tipo.id} value={tipo.id}>
-                                        {tipo.etiqueta}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                        <div className="mb-3">
-                            <label className="form-label text-muted small">
-                                Categoría
-                            </label>
-                            <select
-                                className="form-select bg-dark text-light border-secondary"
-                                value={draftFilters.categoria_id}
-                                onChange={update("categoria_id")}
-                                disabled={!draftFilters.tipo}
-                            >
-                                <option value="">Todas las categorías</option>
-                                {categoriasDisponibles.map((cat) => (
-                                    <option key={cat.id} value={cat.id}>
-                                        {cat.nombre}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                        <div className="mb-3">
-                            <span className="form-label text-muted small d-block">
-                                Rango de Importe (€)
-                            </span>
-                            {rangosInvalidos && (
-                                <div className="text-danger small mb-2">
-                                    El rango indicado no es válido.
-                                </div>
-                            )}
-                            <div className="input-group">
+
+                {/* Body */}
+                <div className="offcanvas-body d-flex flex-column px-4 py-3 gap-3 overflow-auto">
+                    {/* 1. Tipo de Movimiento */}
+                    <div>
+                        <label className="form-label text-muted small text-uppercase fw-bold mb-1">
+                            Tipo de Movimiento
+                        </label>
+                        <select
+                            className="form-select glass-input text-light"
+                            value={draftFilters.tipo}
+                            onChange={update("tipo")}
+                        >
+                            <option value="" style={{ backgroundColor: "#161b22" }}>Todos los tipos</option>
+                            {tiposMovimiento.map((tipo) => (
+                                <option
+                                    key={tipo.id}
+                                    value={tipo.id}
+                                    style={{ backgroundColor: "#161b22" }}
+                                >
+                                    {tipo.etiqueta}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    {/* 2. Categoría */}
+                    <div>
+                        <label className="form-label text-muted small text-uppercase fw-bold mb-1">
+                            Categoría
+                        </label>
+                        <select
+                            className="form-select glass-input text-light"
+                            value={draftFilters.categoria_id || ""}
+                            onChange={update("categoria_id")}
+                            disabled={!draftFilters.tipo}
+                        >
+                            <option value="" style={{ backgroundColor: "#161b22" }}>
+                                {draftFilters.tipo
+                                    ? "Todas las categorías"
+                                    : "Selecciona un tipo primero"}
+                            </option>
+                            {categoriasDisponibles.map((cat) => (
+                                <option
+                                    key={cat.id}
+                                    value={cat.id}
+                                    style={{ backgroundColor: "#161b22" }}
+                                >
+                                    {cat.nombre}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    {/* 3. Rango de Importe */}
+                    <div>
+                        <label className="form-label text-muted small text-uppercase fw-bold mb-1">
+                            Rango de Importe (€)
+                        </label>
+                        {rangosInvalidos && (
+                            <div className="text-danger small mb-1">
+                                Rango o fechas no válidos.
+                            </div>
+                        )}
+                        <div className="row g-2">
+                            <div className="col-6">
                                 <input
                                     type="number"
-                                    className="form-control bg-dark text-light border-secondary"
+                                    className="form-control glass-input font-mono text-light"
                                     placeholder="Mínimo"
                                     value={draftFilters.montoMin}
                                     onChange={update("montoMin")}
                                 />
-                                <span className="input-group-text bg-dark text-light border-secondary">
-                                    -
-                                </span>
+                            </div>
+                            <div className="col-6">
                                 <input
                                     type="number"
-                                    className="form-control bg-dark text-light border-secondary"
+                                    className="form-control glass-input font-mono text-light"
                                     placeholder="Máximo"
                                     value={draftFilters.montoMax}
                                     onChange={update("montoMax")}
                                 />
                             </div>
                         </div>
-                        <div className="mb-3">
-                            <span className="form-label text-muted small d-block">
-                                Filtro Rápido (Mes y Año)
-                            </span>
-                            <div className="row g-2">
-                                <div className="col-7">
-                                    <select
-                                        className="form-select form-select-sm bg-dark text-light border-secondary"
-                                        value={draftFilters.mes}
-                                        onChange={update("mes")}
-                                    >
-                                        <option value="">Mes (Todos)</option>
-                                        {meses.map((mes, index) => (
-                                            <option
-                                                key={mes}
-                                                value={String(
-                                                    index + 1,
-                                                ).padStart(2, "0")}
-                                            >
-                                                {mes}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div className="col-5">
-                                    <input
-                                        type="text"
-                                        inputMode="numeric"
-                                        pattern="[0-9]*"
-                                        maxLength="4"
-                                        className="form-control form-control-sm bg-dark text-light border-secondary"
-                                        placeholder="Año (Ej: 2026)"
-                                        value={draftFilters.anio}
-                                        onChange={update("anio")}
-                                    />
-                                </div>
+                    </div>
+
+                    <div className="border-top border-white border-opacity-10 my-1" />
+
+                    {/* 4. Filtro por Mes / Año */}
+                    <div>
+                        <label className="form-label text-muted small text-uppercase fw-bold mb-1">
+                            Filtro Rápido (Mes / Año)
+                        </label>
+                        <div className="row g-2">
+                            <div className="col-7">
+                                <select
+                                    className="form-select form-select-sm glass-input text-light"
+                                    value={draftFilters.mes}
+                                    onChange={update("mes")}
+                                >
+                                    <option value="" style={{ backgroundColor: "#161b22" }}>Mes (Todos)</option>
+                                    {meses.map((mes, index) => (
+                                        <option
+                                            key={mes}
+                                            value={String(index + 1).padStart(2, "0")}
+                                            style={{ backgroundColor: "#161b22" }}
+                                        >
+                                            {mes}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className="col-5">
+                                <input
+                                    type="text"
+                                    inputMode="numeric"
+                                    pattern="[0-9]*"
+                                    maxLength="4"
+                                    className="form-control form-control-sm glass-input font-mono text-light"
+                                    placeholder="Año (Ej: 2026)"
+                                    value={draftFilters.anio}
+                                    onChange={update("anio")}
+                                />
                             </div>
                         </div>
-                        <div className="mb-4">
-                            <span className="form-label text-muted small d-block">
-                                Rango de Fechas Concretas
-                            </span>
-                            <div className="mb-2">
+                    </div>
+
+                    {/* 5. Rango de Fechas Concretas */}
+                    <div>
+                        <label className="form-label text-muted small text-uppercase fw-bold mb-1">
+                            Rango de Fechas
+                        </label>
+                        <div className="d-flex flex-column gap-2">
+                            <div>
+                                <span className="text-muted small d-block mb-1">Desde:</span>
                                 <CustomDatePicker
                                     id="filter-start-date"
                                     value={draftFilters.fechaInicio}
-                                    onChange={(value) =>
-                                        updateDate("fechaInicio", value)
-                                    }
+                                    onChange={(value) => updateDate("fechaInicio", value)}
                                 />
                             </div>
-                            <CustomDatePicker
-                                id="filter-end-date"
-                                value={draftFilters.fechaFin}
-                                onChange={(value) =>
-                                    updateDate("fechaFin", value)
-                                }
-                            />
+                            <div>
+                                <span className="text-muted small d-block mb-1">Hasta:</span>
+                                <CustomDatePicker
+                                    id="filter-end-date"
+                                    value={draftFilters.fechaFin}
+                                    onChange={(value) => updateDate("fechaFin", value)}
+                                />
+                            </div>
                         </div>
                     </div>
-                    <div className="mt-auto">
-                        <button
-                            className="btn btn-primary w-100 mb-2"
-                            onClick={() => onApply(draftFilters)}
-                            disabled={rangosInvalidos}
-                        >
-                            Aplicar Filtros
-                        </button>
-                        <button
-                            className="btn btn-outline-danger w-100"
-                            onClick={onClear}
-                        >
-                            Limpiar todos los filtros
-                        </button>
-                    </div>
+                </div>
+
+                {/* Footer Pinned Buttons */}
+                <div className="border-top border-white border-opacity-10 p-4 d-flex flex-column gap-2 bg-black bg-opacity-20">
+                    <button
+                        className="btn btn-primary-glow text-white w-100 py-2 fw-semibold rounded-3"
+                        onClick={() => onApply(draftFilters)}
+                        disabled={rangosInvalidos}
+                    >
+                        Aplicar Filtros
+                    </button>
+                    <button
+                        className="btn btn-ghost-glass w-100 py-2 text-muted fw-medium rounded-3"
+                        onClick={onClear}
+                    >
+                        Limpiar todos los filtros
+                    </button>
                 </div>
             </div>
+
             {show && (
                 <div
                     className="offcanvas-backdrop fade show"
+                    style={{
+                        backgroundColor: "rgba(0, 0, 0, 0.6)",
+                        backdropFilter: "blur(4px)",
+                    }}
                     role="presentation"
                     onClick={onClose}
                 />

@@ -1,63 +1,289 @@
+/* Finanzas App - Modern Theme */
 :root {
-    font-family: "Inter", "Segoe UI", sans-serif;
+    font-family: "Geist", "Geist Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
     color: #e8edf2;
-    background: #101418;
+    background: #0d1117;
     font-synthesis: none;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+
+    --bg-app: #0d1117;
+    --bg-surface: #161b22;
+    --bg-surface-elevated: #21262d;
+    --bg-surface-hover: rgba(255, 255, 255, 0.04);
+    --border-subtle: rgba(255, 255, 255, 0.08);
+    --border-focus: rgba(59, 130, 246, 0.6);
+    --accent-emerald: #10b981;
+    --accent-rose: #f43f5e;
+    --accent-blue: #3b82f6;
+    --accent-indigo: #6366f1;
 }
 
 body {
     min-width: 320px;
     min-height: 100vh;
     margin: 0;
-    background:
-        radial-gradient(
-            circle at 10% 0%,
-            rgba(25, 135, 84, 0.12),
-            transparent 32rem
-        ),
-        #101418;
+    background-color: var(--bg-app);
+    background-image:
+        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(59, 130, 246, 0.12), transparent),
+        radial-gradient(circle at 90% 10%, rgba(16, 185, 129, 0.07), transparent 30rem),
+        radial-gradient(circle at 10% 90%, rgba(99, 102, 241, 0.06), transparent 30rem);
+    background-attachment: fixed;
+    color: #e6edf3;
 }
 
 #root {
     min-height: 100vh;
 }
 
+/* Scrollbars */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.28);
+}
+
 button,
 select,
-input {
+input,
+textarea {
     font: inherit;
 }
 
 button:focus-visible,
 [role="button"]:focus-visible,
 input:focus-visible,
-select:focus-visible {
-    outline: 3px solid rgba(61, 214, 140, 0.7);
+select:focus-visible,
+textarea:focus-visible {
+    outline: 2px solid #3b82f6;
     outline-offset: 2px;
 }
 
 .container {
-    max-width: 1240px;
+    max-width: 1280px;
 }
 
 .font-mono {
     font-variant-numeric: tabular-nums;
+    font-variant-ligatures: contextual;
+    font-feature-settings: "calt" 1, "liga" 1;
+    font-family: "Monaspace Neon", ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+}
+
+/* Surfaces and Cards */
+.glass-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: 14px;
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.35);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.glass-card-hover:hover {
+    border-color: rgba(255, 255, 255, 0.14);
+    box-shadow: 0 8px 30px -4px rgba(0, 0, 0, 0.45);
+}
+
+.glass-input {
+    background-color: rgba(255, 255, 255, 0.03) !important;
+    border: 1px solid var(--border-subtle) !important;
+    color: #f0f6fc !important;
+    border-radius: 10px;
+    transition: all 0.15s ease-in-out;
+}
+
+.glass-input:focus {
+    background-color: rgba(255, 255, 255, 0.06) !important;
+    border-color: var(--border-focus) !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2) !important;
+    color: #fff !important;
+}
+
+.glass-input::placeholder {
+    color: #6e7681 !important;
+}
+
+/* Nav Pill Switcher */
+.nav-pill-container {
+    background: rgba(22, 27, 34, 0.85);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border-subtle);
+    padding: 4px;
+    border-radius: 12px;
+    display: inline-flex;
+    gap: 4px;
+}
+
+.nav-pill-btn {
+    border: 0;
+    background: transparent;
+    color: #8b949e;
+    font-weight: 500;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    transition: all 0.18s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.nav-pill-btn:hover {
+    color: #e6edf3;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.nav-pill-btn.active {
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+/* Primary CTA button glow */
+.btn-primary-glow {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 2px 10px rgba(37, 99, 235, 0.35);
+    transition: all 0.2s ease;
+}
+
+.btn-primary-glow:hover {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    box-shadow: 0 4px 16px rgba(37, 99, 235, 0.5);
+    transform: translateY(-1px);
+}
+
+.btn-primary-glow:active {
+    transform: translateY(0);
+}
+
+/* Secondary ghost/glass button */
+.btn-ghost-glass {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border-subtle);
+    color: #c9d1d9;
+    transition: all 0.15s ease;
+}
+
+.btn-ghost-glass:hover {
+    background: rgba(255, 255, 255, 0.09);
+    border-color: rgba(255, 255, 255, 0.18);
+    color: #ffffff;
+}
+
+/* Table styling */
+.modern-table {
+    border-collapse: separate;
+    border-spacing: 0;
+    width: 100%;
+}
+
+.modern-table thead th {
+    background: transparent;
+    color: #8b949e;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.modern-table tbody tr {
+    transition: background-color 0.15s ease;
+}
+
+.modern-table tbody tr:hover {
+    background-color: rgba(255, 255, 255, 0.03);
+}
+
+.modern-table tbody td {
+    padding: 10px 14px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    vertical-align: middle;
+}
+
+.modern-table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+/* Pill Badges */
+.badge-pill-custom {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+/* KPI Card Styles */
+.kpi-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: 14px;
+    padding: 20px 22px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.2s ease;
+}
+
+.kpi-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: transparent;
+    transition: background 0.2s ease;
+}
+
+.kpi-card-income::before {
+    background: linear-gradient(90deg, #10b981, #059669);
+}
+
+.kpi-card-expense::before {
+    background: linear-gradient(90deg, #f43f5e, #e11d48);
+}
+
+.kpi-card-balance-pos::before {
+    background: linear-gradient(90deg, #3b82f6, #10b981);
+}
+
+.kpi-card-balance-neg::before {
+    background: linear-gradient(90deg, #f43f5e, #dc2626);
+}
+
+.kpi-card-sub::before {
+    background: var(--kpi-accent, rgba(255, 255, 255, 0.2));
+}
+
+.kpi-card:hover {
+    border-color: rgba(255, 255, 255, 0.14);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.45);
 }
 
 @media (max-width: 576px) {
     .container {
-        margin-top: 1.5rem !important;
-    }
-
-    .container > .d-flex:first-child {
-        align-items: stretch !important;
-        flex-direction: column;
-        gap: 1rem;
-    }
-
-    .container > .d-flex:first-child > .d-flex {
-        flex-wrap: wrap;
+        margin-top: 1rem !important;
+        padding-left: 1rem;
+        padding-right: 1rem;
     }
 }
