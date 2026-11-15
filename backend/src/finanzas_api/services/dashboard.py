@@ -1,3 +1,5 @@
+import datetime
+
 from sqlalchemy.orm import Session
 
 from ..models.transaction_type import TipoMovimiento
@@ -11,6 +13,10 @@ def build_resumen(db: Session, mes: str | None = None, anio: str | None = None):
     kpis = fetch_kpis(db, curr_start, curr_end)
     cat_actual = fetch_categories(db, curr_start, curr_end)
     cat_previo = fetch_categories(db, prev_start, prev_end)
+
+    year_start = datetime.date(curr_start.year, 1, 1)
+    year_end = datetime.date(curr_start.year, 12, 31)
+    kpis_anuales = fetch_kpis(db, year_start, year_end)
 
     tipos_db = db.query(TipoMovimiento).filter(TipoMovimiento.activo == True).all()
     tipos_map = {
@@ -49,6 +55,7 @@ def build_resumen(db: Session, mes: str | None = None, anio: str | None = None):
         desgloses[tipo].sort(key=lambda x: x["value"], reverse=True)
 
     por_tipo = kpis.get("porTipo", {})
+    por_tipo_anual = kpis_anuales.get("porTipo", {})
 
     kpis_desglose = [
         {
@@ -56,6 +63,17 @@ def build_resumen(db: Session, mes: str | None = None, anio: str | None = None):
             "label": info["name"],
             "color": info["color"],
             "total": por_tipo.get(t_id, 0.0),
+            "es_ingreso": info["es_ingreso"],
+        }
+        for t_id, info in tipos_map.items()
+    ]
+
+    kpis_desglose_anual = [
+        {
+            "id": t_id,
+            "label": info["name"],
+            "color": info["color"],
+            "total": por_tipo_anual.get(t_id, 0.0),
             "es_ingreso": info["es_ingreso"],
         }
         for t_id, info in tipos_map.items()
@@ -78,6 +96,13 @@ def build_resumen(db: Session, mes: str | None = None, anio: str | None = None):
             "gastosTotales": kpis["gastosTotales"],
             "balanceNeto": kpis["balanceNeto"],
             "detallesTipos": kpis_desglose,
+        },
+        "kpisAnuales": {
+            "anio": curr_start.year,
+            "totalIngresos": kpis_anuales["totalIngresos"],
+            "gastosTotales": kpis_anuales["gastosTotales"],
+            "balanceNeto": kpis_anuales["balanceNeto"],
+            "detallesTipos": kpis_desglose_anual,
         },
         "graficos": {
             "dataBarras": [

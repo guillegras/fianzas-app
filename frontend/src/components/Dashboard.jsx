@@ -69,7 +69,7 @@ export default function Dashboard({
         );
     }
 
-    const { kpis, graficos, tablaCategorias } = datosDashboard;
+    const { kpis, kpisAnuales, graficos, tablaCategorias } = datosDashboard;
     const mesNum = parseInt(parseMes(mesGlobal || mesSeleccionado), 10);
     const nombreMesTexto = MESES[mesNum - 1] || "";
     const anioTexto = parseAnio(anioGlobal || anioSeleccionado);
@@ -174,7 +174,12 @@ export default function Dashboard({
                 </div>
             </div>
 
-            <DashboardKPIs kpis={kpis} />
+            <DashboardKPIs
+                kpis={kpis}
+                kpisAnuales={kpisAnuales}
+                mesTexto={nombreMesTexto}
+                anioTexto={anioTexto}
+            />
             <DashboardCharts
                 graficos={graficos}
                 kpis={kpis}

@@ -1,28 +1,39 @@
 import { formatCurrency } from "../utils/transactions";
 
-export default function DashboardKPIs({ kpis }) {
+export default function DashboardKPIs({ kpis, kpisAnuales, mesTexto, anioTexto }) {
     if (!kpis) return null;
 
     const {
-        totalIngresos,
-        gastosTotales,
-        balanceNeto,
+        totalIngresos = 0,
+        gastosTotales = 0,
+        balanceNeto = 0,
         detallesTipos = [],
     } = kpis;
 
     const gastosGenerales = detallesTipos.filter((t) => !t.es_ingreso);
     const esPositivo = balanceNeto >= 0;
 
+    const {
+        totalIngresos: totalIngresosAnual = 0,
+        gastosTotales: gastosTotalesAnual = 0,
+        balanceNeto: balanceNetoAnual = 0,
+        detallesTipos: detallesTiposAnual = [],
+        anio = anioTexto,
+    } = kpisAnuales || {};
+
+    const gastosGeneralesAnual = detallesTiposAnual.filter((t) => !t.es_ingreso);
+    const esPositivoAnual = balanceNetoAnual >= 0;
+
     return (
         <div className="d-flex flex-column gap-3">
-            {/* 3 KPI Cards Principales */}
+            {/* 3 KPI Cards Mensuales */}
             <div className="row g-3">
-                {/* Ingresos */}
+                {/* Ingresos Mensuales */}
                 <div className="col-12 col-md-4">
                     <div className="kpi-card kpi-card-income h-100">
                         <div className="d-flex justify-content-between align-items-center mb-2">
                             <span className="text-muted small text-uppercase fw-semibold">
-                                Ingresos
+                                Ingresos Mensuales
                             </span>
                             <div
                                 className="rounded-circle d-flex align-items-center justify-content-center"
@@ -46,12 +57,12 @@ export default function DashboardKPIs({ kpis }) {
                     </div>
                 </div>
 
-                {/* Gastos */}
+                {/* Gastos Mensuales */}
                 <div className="col-12 col-md-4">
                     <div className="kpi-card kpi-card-expense h-100">
                         <div className="d-flex justify-content-between align-items-center mb-2">
                             <span className="text-muted small text-uppercase fw-semibold">
-                                Gastos
+                                Gastos Mensuales
                             </span>
                             <div
                                 className="rounded-circle d-flex align-items-center justify-content-center"
@@ -75,7 +86,7 @@ export default function DashboardKPIs({ kpis }) {
                     </div>
                 </div>
 
-                {/* Balance */}
+                {/* Balance Mensual */}
                 <div className="col-12 col-md-4">
                     <div
                         className={`kpi-card ${
@@ -84,7 +95,7 @@ export default function DashboardKPIs({ kpis }) {
                     >
                         <div className="d-flex justify-content-between align-items-center mb-2">
                             <span className="text-muted small text-uppercase fw-semibold">
-                                Balance
+                                Balance Mensual
                             </span>
                             <span
                                 className="badge rounded-pill font-mono"
@@ -117,44 +128,194 @@ export default function DashboardKPIs({ kpis }) {
                 </div>
             </div>
 
-            {/* Sub-tipos de gastos (si existen) de forma compacta y minimalista */}
+            {/* Sub-tipos de gastos mensuales (si existen) */}
             {gastosGenerales.length > 0 && (
                 <div className="row g-2">
-                    {gastosGenerales.map((tipo) => {
-                        const porcentaje =
-                            gastosTotales > 0
-                                ? Math.round((tipo.total / gastosTotales) * 100)
-                                : 0;
-
-                        return (
-                            <div key={tipo.id} className="col-6 col-sm-4 col-md-3 col-xl-2">
-                                <div
-                                    className="p-2 px-3 rounded-3 d-flex align-items-center justify-content-between"
-                                    style={{
-                                        backgroundColor: "rgba(255, 255, 255, 0.02)",
-                                        border: "1px solid rgba(255, 255, 255, 0.06)",
-                                    }}
-                                >
-                                    <div className="d-flex align-items-center gap-2 overflow-hidden me-2">
-                                        <span
-                                            className="rounded-circle flex-shrink-0"
-                                            style={{
-                                                width: "8px",
-                                                height: "8px",
-                                                backgroundColor: tipo.color || "#8b949e",
-                                            }}
-                                        />
-                                        <span className="text-light small text-truncate fw-medium">
-                                            {tipo.label}
-                                        </span>
-                                    </div>
-                                    <div className="font-mono text-light small text-nowrap fw-semibold">
-                                        {formatCurrency(tipo.total)}
-                                    </div>
+                    {gastosGenerales.map((tipo) => (
+                        <div key={tipo.id} className="col-6 col-sm-4 col-md-3 col-xl-2">
+                            <div
+                                className="p-2 px-3 rounded-3 d-flex align-items-center justify-content-between"
+                                style={{
+                                    backgroundColor: "rgba(255, 255, 255, 0.02)",
+                                    border: "1px solid rgba(255, 255, 255, 0.06)",
+                                }}
+                            >
+                                <div className="d-flex align-items-center gap-2 overflow-hidden me-2">
+                                    <span
+                                        className="rounded-circle flex-shrink-0"
+                                        style={{
+                                            width: "8px",
+                                            height: "8px",
+                                            backgroundColor: tipo.color || "#8b949e",
+                                        }}
+                                    />
+                                    <span className="text-light small text-truncate fw-medium">
+                                        {tipo.label}
+                                    </span>
+                                </div>
+                                <div className="font-mono text-light small text-nowrap fw-semibold">
+                                    {formatCurrency(tipo.total)}
                                 </div>
                             </div>
-                        );
-                    })}
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            {/* Sección de KPIs Anuales */}
+            {kpisAnuales && (
+                <div className="d-flex flex-column gap-3 pt-2">
+                    <div className="d-flex align-items-center justify-content-between">
+                        <div className="d-flex align-items-center gap-2">
+                            <span
+                                className="text-muted small fw-semibold text-uppercase font-mono"
+                                style={{ fontSize: "0.75rem", letterSpacing: "0.06em" }}
+                            >
+                                Acumulado Anual · {anio}
+                            </span>
+                            <span
+                                className="badge rounded-pill bg-white bg-opacity-10 text-muted font-mono"
+                                style={{ fontSize: "0.68rem" }}
+                            >
+                                1 Ene - 31 Dic
+                            </span>
+                        </div>
+                    </div>
+
+                    <div className="row g-3">
+                        {/* Ingresos Anuales */}
+                        <div className="col-12 col-md-4">
+                            <div className="kpi-card kpi-card-income h-100">
+                                <div className="d-flex justify-content-between align-items-center mb-2">
+                                    <span className="text-muted small text-uppercase fw-semibold">
+                                        Ingresos Anuales
+                                    </span>
+                                    <div
+                                        className="rounded-circle d-flex align-items-center justify-content-center"
+                                        style={{
+                                            width: "32px",
+                                            height: "32px",
+                                            background: "rgba(16, 185, 129, 0.15)",
+                                            color: "#10b981",
+                                        }}
+                                    >
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                            <line x1="7" y1="17" x2="17" y2="7" />
+                                            <polyline points="7 7 17 7 17 17" />
+                                        </svg>
+                                    </div>
+                                </div>
+
+                                <div className="h3 font-mono fw-bold mb-0" style={{ color: "#10b981" }}>
+                                    {formatCurrency(totalIngresosAnual)}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Gastos Anuales */}
+                        <div className="col-12 col-md-4">
+                            <div className="kpi-card kpi-card-expense h-100">
+                                <div className="d-flex justify-content-between align-items-center mb-2">
+                                    <span className="text-muted small text-uppercase fw-semibold">
+                                        Gastos Anuales
+                                    </span>
+                                    <div
+                                        className="rounded-circle d-flex align-items-center justify-content-center"
+                                        style={{
+                                            width: "32px",
+                                            height: "32px",
+                                            background: "rgba(244, 63, 94, 0.15)",
+                                            color: "#f43f5e",
+                                        }}
+                                    >
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                            <line x1="17" y1="7" x2="7" y2="17" />
+                                            <polyline points="17 17 7 17 7 7" />
+                                        </svg>
+                                    </div>
+                                </div>
+
+                                <div className="h3 font-mono fw-bold mb-0" style={{ color: "#f43f5e" }}>
+                                    {formatCurrency(gastosTotalesAnual)}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Balance Anual */}
+                        <div className="col-12 col-md-4">
+                            <div
+                                className={`kpi-card ${
+                                    esPositivoAnual ? "kpi-card-balance-pos" : "kpi-card-balance-neg"
+                                } h-100`}
+                            >
+                                <div className="d-flex justify-content-between align-items-center mb-2">
+                                    <span className="text-muted small text-uppercase fw-semibold">
+                                        Balance Anual
+                                    </span>
+                                    <span
+                                        className="badge rounded-pill font-mono"
+                                        style={{
+                                            backgroundColor: esPositivoAnual
+                                                ? "rgba(16, 185, 129, 0.15)"
+                                                : "rgba(244, 63, 94, 0.15)",
+                                            color: esPositivoAnual ? "#10b981" : "#f43f5e",
+                                            border: `1px solid ${
+                                                esPositivoAnual
+                                                    ? "rgba(16, 185, 129, 0.3)"
+                                                    : "rgba(244, 63, 94, 0.3)"
+                                            }`,
+                                            padding: "3px 8px",
+                                            fontSize: "0.72rem",
+                                        }}
+                                    >
+                                        {esPositivoAnual ? "Superávit" : "Déficit"}
+                                    </span>
+                                </div>
+
+                                <div
+                                    className="h3 font-mono fw-bold mb-0"
+                                    style={{ color: esPositivoAnual ? "#10b981" : "#f43f5e" }}
+                                >
+                                    {esPositivoAnual ? "+" : ""}
+                                    {formatCurrency(balanceNetoAnual)}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Sub-tipos de gastos anuales (si existen) */}
+                    {gastosGeneralesAnual.length > 0 && (
+                        <div className="row g-2">
+                            {gastosGeneralesAnual.map((tipo) => (
+                                <div key={`anual-${tipo.id}`} className="col-6 col-sm-4 col-md-3 col-xl-2">
+                                    <div
+                                        className="p-2 px-3 rounded-3 d-flex align-items-center justify-content-between"
+                                        style={{
+                                            backgroundColor: "rgba(255, 255, 255, 0.02)",
+                                            border: "1px solid rgba(255, 255, 255, 0.06)",
+                                        }}
+                                    >
+                                        <div className="d-flex align-items-center gap-2 overflow-hidden me-2">
+                                            <span
+                                                className="rounded-circle flex-shrink-0"
+                                                style={{
+                                                    width: "8px",
+                                                    height: "8px",
+                                                    backgroundColor: tipo.color || "#8b949e",
+                                                }}
+                                            />
+                                            <span className="text-light small text-truncate fw-medium">
+                                                {tipo.label}
+                                            </span>
+                                        </div>
+                                        <div className="font-mono text-light small text-nowrap fw-semibold">
+                                            {formatCurrency(tipo.total)}
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
             )}
         </div>

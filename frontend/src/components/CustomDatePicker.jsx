@@ -20,7 +20,7 @@ const DIAS_SEMANA = ["L", "M", "X", "J", "V", "S", "D"];
 const fechaLocal = (value) => {
     if (!value) return new Date();
     const [anio, mes, dia] = value.split("-").map(Number);
-    return new Date(anio, mes - 1, dia);
+    return new Date(anio, mes - 1, dia, 12, 0, 0);
 };
 
 const hoyLocal = () => {
@@ -44,8 +44,8 @@ export default function CustomDatePicker({ id, value, onChange }) {
     }, [value]);
 
     const diasDelMes = useMemo(() => {
-        const primerDiaDelMes = new Date(anioVista, mesVista, 1);
-        const ultimoDiaDelMes = new Date(anioVista, mesVista + 1, 0);
+        const primerDiaDelMes = new Date(anioVista, mesVista, 1, 12, 0, 0);
+        const ultimoDiaDelMes = new Date(anioVista, mesVista + 1, 0, 12, 0, 0);
 
         let diaInicio = primerDiaDelMes.getDay() - 1;
         if (diaInicio === -1) diaInicio = 6;
@@ -53,12 +53,18 @@ export default function CustomDatePicker({ id, value, onChange }) {
         const totalDias = ultimoDiaDelMes.getDate();
         const dias = [];
 
-        const ultimoDiaMesAnterior = new Date(anioVista, mesVista, 0).getDate();
+        const ultimoDiaMesAnterior = new Date(anioVista, mesVista, 0, 12, 0, 0).getDate();
+        const prevMes = mesVista === 0 ? 11 : mesVista - 1;
+        const prevAnio = mesVista === 0 ? anioVista - 1 : anioVista;
+        const prevMesStr = String(prevMes + 1).padStart(2, "0");
+
         for (let i = diaInicio - 1; i >= 0; i--) {
+            const d = ultimoDiaMesAnterior - i;
+            const diaStr = String(d).padStart(2, "0");
             dias.push({
-                dia: ultimoDiaMesAnterior - i,
+                dia: d,
                 actualMes: false,
-                fechaStr: null,
+                fechaStr: `${prevAnio}-${prevMesStr}-${diaStr}`,
             });
         }
 
@@ -74,11 +80,16 @@ export default function CustomDatePicker({ id, value, onChange }) {
 
         const totalCeldas = Math.ceil(dias.length / 7) * 7;
         const diasRestantes = totalCeldas - dias.length;
+        const nextMes = mesVista === 11 ? 0 : mesVista + 1;
+        const nextAnio = mesVista === 11 ? anioVista + 1 : anioVista;
+        const nextMesStr = String(nextMes + 1).padStart(2, "0");
+
         for (let i = 1; i <= diasRestantes; i++) {
+            const diaStr = String(i).padStart(2, "0");
             dias.push({
                 dia: i,
                 actualMes: false,
-                fechaStr: null,
+                fechaStr: `${nextAnio}-${nextMesStr}-${diaStr}`,
             });
         }
 
@@ -215,15 +226,31 @@ export default function CustomDatePicker({ id, value, onChange }) {
                             </button>
                         </div>
 
-                        <div className="row text-center text-muted small fw-semibold g-0 mb-2">
+                        <div
+                            style={{
+                                display: "grid",
+                                gridTemplateColumns: "repeat(7, 1fr)",
+                                textAlign: "center",
+                                marginBottom: "0.5rem",
+                            }}
+                            className="text-muted small fw-semibold"
+                        >
                             {DIAS_SEMANA.map((d, index) => (
-                                <div key={index} className="col font-mono" style={{ fontSize: "0.75rem" }}>
+                                <div key={index} className="font-mono py-1" style={{ fontSize: "0.75rem" }}>
                                     {d}
                                 </div>
                             ))}
                         </div>
 
-                        <div className="row text-center g-1 mb-2">
+                        <div
+                            style={{
+                                display: "grid",
+                                gridTemplateColumns: "repeat(7, 1fr)",
+                                gap: "4px 2px",
+                                textAlign: "center",
+                                marginBottom: "0.5rem",
+                            }}
+                        >
                             {diasDelMes.map((item, index) => {
                                 const esSeleccionado = item.fechaStr === value;
                                 const esHoy = item.fechaStr === hoyLocal();
@@ -231,51 +258,42 @@ export default function CustomDatePicker({ id, value, onChange }) {
                                 return (
                                     <div
                                         key={index}
-                                        className="col p-1 d-flex justify-content-center"
+                                        className="d-flex align-items-center justify-content-center"
                                     >
-                                        {item.fechaStr ? (
-                                            <button
-                                                type="button"
-                                                className="btn btn-sm p-0 d-flex align-items-center justify-content-center font-mono small fw-medium"
-                                                style={{
-                                                    width: "34px",
-                                                    height: "34px",
-                                                    borderRadius: "50%",
-                                                    backgroundColor: esSeleccionado
-                                                        ? "#3b82f6"
-                                                        : esHoy
-                                                          ? "rgba(59, 130, 246, 0.15)"
-                                                          : "transparent",
-                                                    color: esSeleccionado
-                                                        ? "#ffffff"
-                                                        : esHoy
-                                                          ? "#60a5fa"
-                                                          : "#f0f6fc",
-                                                    border: esHoy && !esSeleccionado
-                                                        ? "1px solid rgba(59, 130, 246, 0.4)"
-                                                        : "1px solid transparent",
-                                                    boxShadow: esSeleccionado
-                                                        ? "0 0 12px rgba(59, 130, 246, 0.5)"
-                                                        : "none",
-                                                }}
-                                                onClick={() => {
-                                                    onChange(item.fechaStr);
-                                                    setIsOpen(false);
-                                                }}
-                                            >
-                                                {item.dia}
-                                            </button>
-                                        ) : (
-                                            <span
-                                                className="text-muted opacity-25 small font-mono d-flex align-items-center justify-content-center"
-                                                style={{
-                                                    width: "34px",
-                                                    height: "34px",
-                                                }}
-                                            >
-                                                {item.dia}
-                                            </span>
-                                        )}
+                                        <button
+                                            type="button"
+                                            className="btn btn-sm p-0 d-flex align-items-center justify-content-center font-mono small fw-medium"
+                                            style={{
+                                                width: "32px",
+                                                height: "32px",
+                                                borderRadius: "50%",
+                                                backgroundColor: esSeleccionado
+                                                    ? "#3b82f6"
+                                                    : esHoy
+                                                      ? "rgba(59, 130, 246, 0.15)"
+                                                      : "transparent",
+                                                color: esSeleccionado
+                                                    ? "#ffffff"
+                                                    : esHoy
+                                                      ? "#60a5fa"
+                                                      : item.actualMes
+                                                        ? "#f0f6fc"
+                                                        : "rgba(240, 246, 252, 0.4)",
+                                                border: esHoy && !esSeleccionado
+                                                    ? "1px solid rgba(59, 130, 246, 0.4)"
+                                                    : "1px solid transparent",
+                                                boxShadow: esSeleccionado
+                                                    ? "0 0 12px rgba(59, 130, 246, 0.5)"
+                                                    : "none",
+                                                opacity: !item.actualMes && !esSeleccionado ? 0.45 : 1,
+                                            }}
+                                            onClick={() => {
+                                                onChange(item.fechaStr);
+                                                setIsOpen(false);
+                                            }}
+                                        >
+                                            {item.dia}
+                                        </button>
                                     </div>
                                 );
                             })}
